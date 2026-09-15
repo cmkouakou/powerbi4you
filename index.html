@@ -1,0 +1,1820 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Chantier BRVM Power BI</title>
+<meta name="description" content="Guide pas à pas, sprint par sprint, pour construire un dashboard Power BI sur les données BRVM Analyser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --ink:#1B2430; --ink-soft:#51606F; --ink-faint:#8592A0;
+    --canvas:#F1F4F7; --surface:#FFFFFF; --surface-2:#E9EDF1;
+    --border:#D7DEE5; --border-strong:#BFC9D2;
+    --accent:#B5842A; --accent-ink:#7A5A12; --accent-soft:#F3E7CC;
+    --teal:#1F7A66; --teal-soft:#DFEFEA; --teal-ink:#14503F;
+    --code-bg:#12181F; --code-ink:#DCE3EA; --code-accent:#E8BE55;
+    --focus:#3D6FD1;
+    --shadow: 0 1px 2px rgba(20,26,33,.06), 0 8px 24px -12px rgba(20,26,33,.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#E7EBEF; --ink-soft:#A9B4BE; --ink-faint:#6E7A86;
+      --canvas:#0F1418; --surface:#171E25; --surface-2:#1E2730;
+      --border:#2B3742; --border-strong:#3A4854;
+      --accent:#E3B658; --accent-ink:#F4D488; --accent-soft:#3A2F14;
+      --teal:#4FB39B; --teal-soft:#15332C; --teal-ink:#8FDBC7;
+      --code-bg:#0B0F13; --code-ink:#DCE3EA; --code-accent:#E8BE55;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px -12px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#E7EBEF; --ink-soft:#A9B4BE; --ink-faint:#6E7A86;
+    --canvas:#0F1418; --surface:#171E25; --surface-2:#1E2730;
+    --border:#2B3742; --border-strong:#3A4854;
+    --accent:#E3B658; --accent-ink:#F4D488; --accent-soft:#3A2F14;
+    --teal:#4FB39B; --teal-soft:#15332C; --teal-ink:#8FDBC7;
+    --code-bg:#0B0F13; --code-ink:#DCE3EA; --code-accent:#E8BE55;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px -12px rgba(0,0,0,.55);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--canvas); color:var(--ink);
+    font-family:"IBM Plex Sans", system-ui, sans-serif;
+    font-size:15.5px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:"Fraunces", Georgia, serif; text-wrap:balance; color:var(--ink); margin:0;}
+  code, .mono, .kbd, pre{font-family:"IBM Plex Mono", ui-monospace, monospace;}
+  a{color:var(--focus);}
+  :focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+  /* ===== Shell ===== */
+  .shell{max-width:1180px; margin:0 auto; padding-inline:20px; padding-block:0 48px;}
+
+  .topbar{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+    flex-wrap:wrap;
+    padding-block:28px 20px; border-bottom:1px solid var(--border);
+    margin-bottom:24px;
+  }
+  .topbar .eyebrow{
+    font-family:"IBM Plex Mono"; font-size:11.5px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--accent-ink); margin:0 0 6px;
+  }
+  .topbar h1{font-size:clamp(26px,4vw,34px); font-weight:600;}
+  .topbar .sub{color:var(--ink-soft); margin-top:6px; max-width:56ch; font-size:14.5px;}
+
+  .progress-chip{
+    display:flex; align-items:center; gap:10px;
+    background:var(--surface); border:1px solid var(--border); border-radius:100px;
+    padding:8px 14px 8px 8px; box-shadow:var(--shadow); flex-shrink:0;
+  }
+  .progress-ring{width:34px;height:34px;flex-shrink:0;}
+  .progress-chip .txt{font-size:12.5px; line-height:1.3;}
+  .progress-chip .txt b{display:block; font-size:14px; color:var(--ink);}
+
+  .layout{display:grid; grid-template-columns:230px 1fr; gap:28px; align-items:start;}
+  @media (max-width:760px){ .layout{grid-template-columns:1fr;} }
+
+  /* ===== Sidebar / sprint navigator ===== */
+  nav.sprints{
+    position:sticky; top:16px;
+    border:1px solid var(--border); border-radius:12px; background:var(--surface);
+    box-shadow:var(--shadow); overflow:hidden;
+  }
+  @media (max-width:760px){ nav.sprints{position:static;} }
+  nav.sprints .head{
+    padding:12px 14px; font-family:"IBM Plex Mono"; font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-faint); border-bottom:1px solid var(--border);
+  }
+  .sprint-tab{
+    display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+    padding:11px 14px; border:0; background:transparent; cursor:pointer;
+    border-bottom:1px solid var(--border); color:var(--ink); font:inherit; font-size:13.5px;
+  }
+  .sprint-tab:last-child{border-bottom:0;}
+  .sprint-tab:hover{background:var(--surface-2);}
+  .sprint-tab[aria-current="true"]{background:var(--accent-soft); color:var(--accent-ink); font-weight:600;}
+  .dot{width:9px; height:9px; border-radius:50%; flex-shrink:0; background:var(--border-strong);}
+  .sprint-tab.done .dot{background:var(--teal);}
+  .sprint-tab[aria-current="true"] .dot{background:var(--accent);}
+  .sprint-tab .num{font-family:"IBM Plex Mono"; color:var(--ink-faint); font-size:12px;}
+  .sprint-tab[aria-current="true"] .num{color:var(--accent-ink);}
+  .sprint-tab .lbl{flex:1;}
+  .sprint-tab .lockmark{font-size:12px; color:var(--ink-faint);}
+
+  /* ===== Content panel ===== */
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:22px 24px; box-shadow:var(--shadow);
+  }
+  .stack{display:flex; flex-direction:column; gap:20px;}
+
+  .sprint-head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:4px;}
+  .sprint-head .tag{
+    font-family:"IBM Plex Mono"; font-size:12px; color:var(--accent-ink);
+    background:var(--accent-soft); padding:3px 9px; border-radius:6px; letter-spacing:.03em;
+  }
+  .sprint-head h2{font-size:23px;}
+  .lede{color:var(--ink-soft); font-size:14.5px; max-width:68ch;}
+
+  h3.section{
+    font-size:16px; margin-top:6px; padding-top:18px; border-top:1px solid var(--border);
+    display:flex; align-items:center; gap:8px;
+  }
+  h3.section .n{font-family:"IBM Plex Mono"; font-size:12px; color:var(--ink-faint); font-weight:400;}
+
+  p{margin:10px 0 0;}
+  ul, ol{margin:10px 0 0; padding-left:1.3em;}
+  li{margin-top:6px;}
+  li::marker{color:var(--ink-faint);}
+
+  /* ===== dashboard concept mini board ===== */
+  .board{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:12px;}
+  @media (max-width:640px){ .board{grid-template-columns:1fr;} }
+  .board .page{
+    border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-2);
+  }
+  .board .page .ptitle{font-weight:600; font-size:13.5px; display:flex; align-items:center; gap:7px;}
+  .board .page .ptitle .sw{width:9px; height:9px; border-radius:2px; flex-shrink:0;}
+  .board .page ul{margin-top:8px; padding-left:1.1em; font-size:13px; color:var(--ink-soft);}
+  .board .page li{margin-top:4px;}
+
+  /* ===== views table ===== */
+  .axis-block{margin-top:14px;}
+  .axis-title{
+    display:flex; align-items:center; gap:8px; font-family:"IBM Plex Mono"; font-size:12px;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); margin-top:18px;
+  }
+  .axis-title .sw{width:9px; height:9px; border-radius:2px;}
+  table.views{width:100%; border-collapse:collapse; margin-top:8px; font-size:13.5px;}
+  table.views th{
+    text-align:left; font-family:"IBM Plex Mono"; font-size:11px; text-transform:uppercase;
+    letter-spacing:.05em; color:var(--ink-faint); font-weight:500; padding:7px 10px;
+    border-bottom:1px solid var(--border-strong);
+  }
+  table.views td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  table.views tr:last-child td{border-bottom:0;}
+  table.views td.vname{font-family:"IBM Plex Mono"; font-size:12.5px; white-space:nowrap;}
+  .role{
+    display:inline-block; font-size:10.5px; font-family:"IBM Plex Mono"; padding:2px 7px;
+    border-radius:100px; letter-spacing:.03em;
+  }
+  .role.dim{background:var(--teal-soft); color:var(--teal-ink);}
+  .role.fait{background:var(--accent-soft); color:var(--accent-ink);}
+  .tblwrap{overflow-x:auto;}
+
+  .kept-badge{
+    display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-family:"IBM Plex Mono";
+    color:var(--teal-ink); background:var(--teal-soft); padding:2px 8px; border-radius:100px;
+  }
+
+  /* ===== star schema diagram ===== */
+  .schema-wrap{margin-top:14px; overflow-x:auto;}
+  .schema-wrap svg text{font-family:"IBM Plex Mono", monospace;}
+
+  /* ===== power query mockup ===== */
+  .pq-mock{
+    margin-top:14px; border:1px solid var(--border-strong); border-radius:10px; overflow:hidden;
+    background:var(--surface-2);
+  }
+  .pq-ribbon{
+    display:flex; gap:2px; background:var(--surface); border-bottom:1px solid var(--border-strong);
+    padding:6px 8px; font-size:11.5px; overflow-x:auto;
+  }
+  .pq-ribbon span{padding:5px 10px; border-radius:6px; color:var(--ink-soft); white-space:nowrap;}
+  .pq-ribbon span.on{background:var(--accent-soft); color:var(--accent-ink); font-weight:600;}
+  .pq-body{display:grid; grid-template-columns:150px 1fr 190px; min-height:210px;}
+  @media (max-width:640px){ .pq-body{grid-template-columns:1fr; min-height:auto;} }
+  .pq-col{padding:10px; border-right:1px solid var(--border);}
+  .pq-col:last-child{border-right:0;}
+  .pq-col h4{
+    font-family:"IBM Plex Mono"; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--ink-faint); margin:0 0 8px; font-weight:500;
+  }
+  .pq-queries div{padding:5px 7px; border-radius:5px; font-size:12px; margin-bottom:2px;}
+  .pq-queries div.sel{background:var(--accent-soft); color:var(--accent-ink); font-weight:600;}
+  .pq-grid{background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:8px; font-size:11.5px;}
+  .pq-grid .hdr{display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; font-family:"IBM Plex Mono"; color:var(--ink-faint); font-size:10px;}
+  .pq-grid .typ{display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; font-family:"IBM Plex Mono"; color:var(--accent-ink); font-size:10px; margin-bottom:4px;}
+  .pq-grid .row{display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; padding:3px 0; border-top:1px solid var(--border);}
+  .pq-steps div{padding:4px 7px; font-size:11.5px; border-radius:5px; color:var(--ink-soft);}
+  .pq-steps div.cur{background:var(--surface); border:1px solid var(--border-strong); color:var(--ink); font-weight:600;}
+  .pq-fx{padding:6px 10px; background:var(--surface); border-top:1px solid var(--border-strong); font-size:11.5px; color:var(--ink-faint); font-family:"IBM Plex Mono";}
+  .pq-fx b{color:var(--ink-soft);}
+
+  .callout{
+    border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:8px;
+    padding:12px 14px; background:var(--accent-soft); font-size:13.5px; margin-top:14px;
+  }
+  .callout.info{border-left-color:var(--focus); background:var(--surface-2);}
+  .callout b{color:var(--ink);}
+
+  /* ===== glossaire rétractable ===== */
+  details.glossary{
+    margin-top:14px; border:1px solid var(--border); border-radius:10px;
+    background:var(--surface-2); overflow:hidden;
+  }
+  details.glossary summary{
+    cursor:pointer; list-style:none; padding:11px 14px; font-size:13.5px; font-weight:600;
+    color:var(--teal-ink); display:flex; align-items:center; gap:8px; user-select:none;
+  }
+  details.glossary summary::-webkit-details-marker{display:none;}
+  details.glossary summary .ico{
+    width:9px; height:9px; flex-shrink:0; transition:transform .15s ease;
+    border-right:2px solid var(--teal); border-bottom:2px solid var(--teal); transform:rotate(-45deg);
+  }
+  details.glossary[open] summary .ico{transform:rotate(45deg);}
+  details.glossary summary .tag{
+    font-family:"IBM Plex Mono"; font-size:10.5px; font-weight:500; letter-spacing:.05em;
+    text-transform:uppercase; color:var(--ink-faint);
+  }
+  details.glossary .body{padding:2px 14px 14px; font-size:13.5px; color:var(--ink-soft); border-top:1px solid var(--border);}
+  details.glossary .body p{margin:10px 0 0;}
+  details.glossary .body p:first-child{margin-top:12px;}
+  details.glossary .body b{color:var(--ink);}
+
+  pre.codebox{
+    background:var(--code-bg); color:var(--code-ink); padding:14px 16px; border-radius:10px;
+    font-size:13px; overflow-x:auto; margin-top:12px; line-height:1.55;
+  }
+  pre.codebox .c{color:var(--code-accent);}
+
+  /* checklist */
+  .checklist{list-style:none; padding-left:0; margin-top:10px;}
+  .checklist li{
+    display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--border);
+    margin-top:0;
+  }
+  .checklist li:last-child{border-bottom:0;}
+  .checklist input{margin-top:3px; width:16px; height:16px; accent-color:var(--teal); flex-shrink:0;}
+  .checklist label{font-size:13.5px; color:var(--ink-soft);}
+  .checklist input:checked + label{color:var(--ink-faint); text-decoration:line-through;}
+
+  .footfoot{
+    display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+    margin-top:22px; padding-top:16px; border-top:1px solid var(--border); font-size:13px; color:var(--ink-faint);
+  }
+
+  /* locked/coming soon panels */
+  .soon{border:1px dashed var(--border-strong); border-radius:14px; padding:26px 24px; background:var(--surface);}
+  .soon .tag{background:var(--surface-2); color:var(--ink-faint);}
+  .soon ul{color:var(--ink-soft);}
+
+  /* ===== merge dialog mockup ===== */
+  .merge-mock{margin-top:14px; border:1px solid var(--border-strong); border-radius:10px; overflow:hidden; background:var(--surface);}
+  .merge-tables{display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border);}
+  @media (max-width:600px){ .merge-tables{grid-template-columns:1fr;} }
+  .merge-tables .t{background:var(--surface); padding:10px;}
+  .merge-tables h4{font-family:"IBM Plex Mono"; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin:0 0 8px;}
+  .merge-tables .col{padding:4px 8px; font-size:12px; border-radius:5px; margin-bottom:2px; color:var(--ink-soft);}
+  .merge-tables .col.match{background:var(--accent-soft); color:var(--accent-ink); font-weight:600;}
+  .merge-join{display:flex; gap:6px; padding:10px; border-top:1px solid var(--border); flex-wrap:wrap;}
+  .merge-join span{font-size:11.5px; padding:5px 10px; border-radius:100px; border:1px solid var(--border-strong); color:var(--ink-faint);}
+  .merge-join span.on{background:var(--accent-soft); color:var(--accent-ink); border-color:var(--accent); font-weight:600;}
+
+  .decide{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;}
+  @media (max-width:640px){ .decide{grid-template-columns:1fr;} }
+  .decide .box{border-radius:10px; padding:14px; border:1px solid var(--border);}
+  .decide .box.a{background:var(--teal-soft); border-color:var(--teal);}
+  .decide .box.b{background:var(--accent-soft); border-color:var(--accent);}
+  .decide .box h4{font-size:13.5px; margin:0 0 6px;}
+  .decide .box.a h4{color:var(--teal-ink);}
+  .decide .box.b h4{color:var(--accent-ink);}
+  .decide .box ul{margin-top:6px; padding-left:1.1em; font-size:13px;}
+  .decide .box.a ul{color:var(--teal-ink);}
+  .decide .box.b ul{color:var(--accent-ink);}
+</style>
+
+<div class="shell">
+
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">BRVM Analyser · schéma reporting → Power BI Desktop</p>
+      <h1>Chantier BRVM Power BI</h1>
+      <p class="sub">Guide d'entraînement, sprint par sprint : de la connexion déjà en place jusqu'à un
+        dashboard complet — nettoyage, transformation, modélisation, présentation.</p>
+    </div>
+    <div class="progress-chip">
+      <svg class="progress-ring" viewBox="0 0 36 36" id="ring">
+        <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--border)" stroke-width="3.5"></circle>
+        <circle id="ringFg" cx="18" cy="18" r="15.5" fill="none" stroke="var(--accent)" stroke-width="3.5"
+          stroke-linecap="round" stroke-dasharray="97.4" stroke-dashoffset="97.4" transform="rotate(-90 18 18)"></circle>
+      </svg>
+      <div class="txt"><b id="ringLabel">0 / 7</b>sprints terminés</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <nav class="sprints" aria-label="Sprints du guide">
+      <div class="head">Sommaire</div>
+      <!-- tabs injected by JS from SPRINTS array -->
+      <div id="tabsHost"></div>
+    </nav>
+
+    <div id="panelsHost">
+
+<script>
+(function(){
+  var SPRINTS = [
+    {id:1, label:"Vue d'ensemble & 1er chargement", ready:true},
+    {id:2, label:"Nettoyage des données", ready:true},
+    {id:3, label:"Transformation", ready:true},
+    {id:4, label:"Modélisation", ready:true},
+    {id:5, label:"DAX avancé", ready:true},
+    {id:6, label:"Présentation", ready:true},
+    {id:7, label:"Finalisation", ready:true}
+  ];
+
+  var tabsHost = document.getElementById('tabsHost');
+  var panelsHost = document.getElementById('panelsHost');
+
+  SPRINTS.forEach(function(s){
+    var btn = document.createElement('button');
+    btn.className = 'sprint-tab';
+    btn.type = 'button';
+    btn.dataset.sprint = s.id;
+    btn.innerHTML = '<span class="dot"></span><span class="num">S'+s.id+'</span><span class="lbl">'+s.label+'</span>' +
+      (s.ready ? '' : '<span class="lockmark">à venir</span>');
+    btn.addEventListener('click', function(){ activate(s.id); });
+    tabsHost.appendChild(btn);
+  });
+
+  // Sprint 1 content lives in the HTML below (#panel-1). Sprints 2-7 get a
+  // generated "coming soon" panel from their teaser text until written.
+  SPRINTS.forEach(function(s){
+    if(s.ready) return;
+    var div = document.createElement('div');
+    div.className = 'panel';
+    div.id = 'panel-'+s.id;
+    div.innerHTML =
+      '<div class="soon stack">' +
+        '<div class="sprint-head"><span class="tag">Sprint '+s.id+'</span><h2>'+s.label+'</h2></div>' +
+        '<p class="lede">Ce sprint n\'a pas encore été rédigé — on le construit dans une prochaine session.</p>' +
+        '<div class="callout info"><b>Au programme :</b> '+s.teaser+'</div>' +
+      '</div>';
+    panelsHost.appendChild(div);
+  });
+
+  // ==================== PERSISTANCE DE LA PROGRESSION ====================
+  // Progression stockée dans la capacité "db" (liée au compte claude.ai)
+  // pour survivre au changement de navigateur/appareil ; repli automatique
+  // sur localStorage si "db" est indisponible pour cette vue.
+  var state = { lastSprint: 1, done: {}, checks: {} };
+  var docRef = null;
+  var writeTimer = null;
+  var writePending = false;
+
+  function lsGet(key){ try{ return localStorage.getItem(key); }catch(e){ return null; } }
+  function lsSet(key, val){ try{ localStorage.setItem(key, val); }catch(e){} }
+
+  function loadFromLocalStorage(){
+    state.lastSprint = parseInt(lsGet('brvm-pbi-guide-last'), 10) || 1;
+    try{ state.done = JSON.parse(lsGet('brvm-pbi-guide-done') || '{}'); }catch(e){ state.done = {}; }
+    document.querySelectorAll('.checklist input[type="checkbox"]').forEach(function(cb){
+      if(lsGet('brvm-pbi-guide-cb-'+cb.id) === '1') state.checks[cb.id] = true;
+    });
+  }
+
+  function saveToLocalStorage(){
+    lsSet('brvm-pbi-guide-last', String(state.lastSprint));
+    lsSet('brvm-pbi-guide-done', JSON.stringify(state.done));
+    Object.keys(state.checks).forEach(function(id){
+      lsSet('brvm-pbi-guide-cb-'+id, state.checks[id] ? '1' : '0');
+    });
+  }
+
+  function persist(){
+    saveToLocalStorage();
+    if(!docRef) return;
+    writePending = true;
+    if(writeTimer) return;
+    writeTimer = setTimeout(function(){
+      writeTimer = null;
+      if(!writePending) return;
+      writePending = false;
+      docRef.set({ lastSprint: state.lastSprint, done: state.done, checks: state.checks, updatedAt: Date.now() })
+        .catch(function(){ /* écriture échouée : la progression reste dans localStorage */ });
+    }, 500);
+  }
+
+  function applyStateToUI(){
+    document.querySelectorAll('.sprint-tab').forEach(function(t){
+      t.setAttribute('aria-current', String(state.lastSprint) === t.dataset.sprint ? 'true' : 'false');
+    });
+    document.querySelectorAll('.panel').forEach(function(p){
+      p.classList.toggle('active', p.id === 'panel-'+state.lastSprint);
+    });
+    document.querySelectorAll('.checklist input[type="checkbox"]').forEach(function(cb){
+      cb.checked = !!state.checks[cb.id];
+    });
+    markDone();
+  }
+
+  function activate(id){
+    state.lastSprint = id;
+    applyStateToUI();
+    persist();
+  }
+
+  function markDone(){
+    var n = SPRINTS.filter(function(s){ return state.done[s.id]; }).length;
+    var ringLabel = document.getElementById('ringLabel');
+    if(ringLabel) ringLabel.textContent = n + ' / ' + SPRINTS.length;
+    var c = 2*Math.PI*15.5;
+    var fg = document.getElementById('ringFg');
+    if(fg){
+      fg.setAttribute('stroke-dasharray', c);
+      fg.setAttribute('stroke-dashoffset', c - (c * n / SPRINTS.length));
+    }
+    document.querySelectorAll('.sprint-tab').forEach(function(t){
+      t.classList.toggle('done', !!state.done[t.dataset.sprint]);
+    });
+  }
+
+  window.__brvmToggleChecklist = function(cb){
+    state.checks[cb.id] = cb.checked;
+    var panel = cb.closest('.panel');
+    if(panel){
+      var id = panel.id.replace('panel-', '');
+      var group = panel.querySelectorAll('.checklist input');
+      var all = group.length > 0 && Array.prototype.every.call(group, function(i){ return i.checked; });
+      state.done[id] = all;
+    }
+    markDone();
+    persist();
+  };
+
+  function applyRemote(data){
+    if(!data) return;
+    state.lastSprint = data.lastSprint || state.lastSprint;
+    state.done = data.done || state.done;
+    state.checks = data.checks || state.checks;
+    applyStateToUI();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    loadFromLocalStorage();
+    applyStateToUI();
+
+    if(!window.claude || typeof window.claude.use !== 'function') return;
+
+    window.claude.use('db').then(function(db){
+      if(!db) return; // capacité indisponible pour cette vue : on reste sur localStorage
+      docRef = db.doc('progress/state');
+      docRef.get().then(function(snap){
+        if(snap && snap.exists){
+          applyRemote(snap.data());
+        } else {
+          docRef.set({ lastSprint: state.lastSprint, done: state.done, checks: state.checks, updatedAt: Date.now() })
+            .catch(function(){});
+        }
+        docRef.onSnapshot(function(snap2){
+          if(snap2 && snap2.exists) applyRemote(snap2.data());
+        }, function(){ /* abonnement interrompu : on garde le dernier état connu */ });
+      }).catch(function(){ /* lecture échouée : on reste sur l'état localStorage déjà appliqué */ });
+    }).catch(function(){});
+  });
+})();
+</script>
+
+<!-- ============================================================ -->
+<!-- SPRINT 1 — contenu complet                                    -->
+<!-- ============================================================ -->
+<div class="panel active" id="panel-1">
+<div class="card stack">
+
+  <div class="sprint-head">
+    <span class="tag">Sprint 1</span>
+    <h2>Vue d'ensemble &amp; premier chargement</h2>
+  </div>
+  <p class="lede">Objectif de cette session : savoir exactement quelles données on va utiliser et
+    pourquoi, puis faire entrer les bonnes tables dans Power BI. On ne nettoie rien encore — ça, c'est
+    le sprint 2.</p>
+
+  <h3 class="section"><span class="n">1.1</span> Le dashboard qu'on construit</h3>
+  <p>Pour que chaque sprint ait un but concret, on vise un dashboard à 3 pages, un par axe de données
+    disponible dans le schéma <code>reporting</code> :</p>
+  <div class="board">
+    <div class="page">
+      <div class="ptitle"><span class="sw" style="background:var(--accent)"></span>Marché</div>
+      <ul>
+        <li>Cours et évolution par titre</li>
+        <li>Répartition par secteur / pays</li>
+        <li>BNA, DPA, VCA par exercice</li>
+      </ul>
+    </div>
+    <div class="page">
+      <div class="ptitle"><span class="sw" style="background:var(--focus)"></span>Utilisateurs</div>
+      <ul>
+        <li>Profils investisseurs (risque, horizon)</li>
+        <li>Analyses lancées par jour</li>
+        <li>Titres les plus consultés</li>
+      </ul>
+    </div>
+    <div class="page">
+      <div class="ptitle"><span class="sw" style="background:var(--teal)"></span>Revenus</div>
+      <ul>
+        <li>Abonnements par plan / statut</li>
+        <li>Montant total par période</li>
+        <li>Évolution mensuelle</li>
+      </ul>
+    </div>
+  </div>
+  <p style="font-size:13px; color:var(--ink-faint)">On affinera ces listes en sprint 6 — pour l'instant
+    elles servent juste à choisir les bonnes tables.</p>
+
+  <h3 class="section"><span class="n">1.2</span> Comment Power BI s'organise en entreprise</h3>
+  <p>Avant d'ouvrir Power BI Desktop, une clarification qui évite un contresens fréquent chez les
+    étudiants : on ne reçoit jamais un identifiant unique et on "commence à travailler" comme sur un
+    tableur personnel. Dans une vraie entreprise, l'accès aux données est <b>découpé en couches</b>,
+    chacune avec son propriétaire, sa raison d'être et son processus de création — le rôle
+    <code>powerbi_reader</code> que tu utiliseras au sprint 1.6 n'est qu'<b>une seule de ces couches</b>.
+    Voici les quatre, dans l'ordre où les données te parviennent.</p>
+
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Couche</th><th>Qui la crée</th><th>Pourquoi elle existe</th></tr>
+    <tr>
+      <td class="vname">Rôle base de données<br><span class="mono" style="font-size:11px">powerbi_reader</span></td>
+      <td><span class="role dim">DBA / dev backend</span></td>
+      <td>Contrôle ce que la <b>requête SQL</b> a le droit de lire — indépendamment de qui l'exécute.
+        Créé une seule fois par migration versionnée (ici <code>072_reporting_powerbi.sql</code>),
+        jamais à la main en production.</td>
+    </tr>
+    <tr>
+      <td class="vname">Passerelle / connexion<br><span class="mono" style="font-size:11px">gateway, identifiants</span></td>
+      <td><span class="role dim">Admin infra / IT</span></td>
+      <td>Transporte les identifiants <code>powerbi_reader</code> de façon sécurisée jusqu'au service
+        Power BI, sans que chaque analyste les tape lui-même. Un seul compte de service, jamais un mot
+        de passe personnel.</td>
+    </tr>
+    <tr>
+      <td class="vname">Espace de travail<br><span class="mono" style="font-size:11px">workspace</span></td>
+      <td><span class="role fait">Admin Power BI / BI lead</span></td>
+      <td>Regroupe les jeux de données, rapports et dashboards d'une équipe ou d'un projet. Détermine
+        <b>qui peut publier</b> (Contributeur/Membre) contre <b>qui peut seulement consulter</b>
+        (Lecteur/Viewer) — voir le tableau des rôles ci-dessous.</td>
+    </tr>
+    <tr>
+      <td class="vname">Sécurité au niveau ligne<br><span class="mono" style="font-size:11px">RLS</span></td>
+      <td><span class="role fait">Concepteur du rapport</span></td>
+      <td>Filtre les <b>lignes</b> qu'un utilisateur voit dans un rapport déjà publié (ex. : un
+        directeur régional ne voit que sa région) — s'ajoute par-dessus tout le reste, définie dans
+        Power BI Desktop avant publication.</td>
+    </tr>
+  </table>
+  </div>
+
+  <p><b>Les 4 rôles à l'intérieur d'un espace de travail Power BI</b> — c'est la couche que les
+    étudiants découvrent en premier en entreprise, et celle qui décide concrètement ce qu'on a le
+    droit de cliquer :</p>
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Rôle</th><th>Peut consulter</th><th>Peut publier / modifier</th><th>Peut gérer les accès</th></tr>
+    <tr><td class="vname">Viewer (Lecteur)</td><td>Oui</td><td>Non</td><td>Non</td></tr>
+    <tr><td class="vname">Contributor (Contributeur)</td><td>Oui</td><td>Oui (rapports/datasets)</td><td>Non</td></tr>
+    <tr><td class="vname">Member (Membre)</td><td>Oui</td><td>Oui</td><td>Oui (ajouter des membres)</td></tr>
+    <tr><td class="vname">Admin</td><td>Oui</td><td>Oui</td><td>Oui + supprimer l'espace, changer sa licence</td></tr>
+  </table>
+  </div>
+
+  <details class="glossary">
+    <summary><span class="ico"></span>Notion — Qui crée un rôle, et pourquoi jamais "à la main" en production ?<span class="tag">Gouvernance</span></summary>
+    <div class="body">
+      <p><b>Qui crée <span class="mono">powerbi_reader</span> (le rôle base de données)</b> — un
+        développeur backend ou un DBA, via un script SQL versionné dans le dépôt de code (une
+        migration), jamais en tapant une commande directement sur la base de production. Raison :
+        si le rôle doit être recréé (nouvel environnement, restauration après incident), le script
+        garantit qu'il aura exactement les mêmes droits — ni plus, ni moins — sans dépendre de la
+        mémoire de quelqu'un.</p>
+      <p><b>Qui crée un espace de travail et y assigne les rôles Viewer/Contributor/Member/Admin</b> —
+        un administrateur Power BI (souvent le "BI lead" ou l'équipe IT), généralement après une
+        demande formelle ("j'ai besoin d'accès au dashboard Ventes") passant par un processus
+        d'approbation, pas par un email direct entre collègues. Raison : chaque accès accordé doit
+        pouvoir être justifié et retiré plus tard (départ d'un employé, changement de poste) — c'est
+        ce qu'un auditeur vérifie lors d'un contrôle de conformité.</p>
+      <p><b>Pourquoi cette séparation stricte entre les 4 couches</b> (et non un seul accès global) —
+        parce qu'un même besoin change de couche selon la situation : donner à un analyste le droit de
+        *publier* un rapport (couche espace de travail) ne doit jamais lui donner accès aux tables
+        brutes de production (couche base de données) ; et donner à toute l'équipe Marketing le droit
+        de *voir* le dashboard Ventes ne doit pas leur montrer les chiffres de chaque vendeur
+        individuellement (couche RLS). Trois besoins différents, trois couches, trois responsables.</p>
+      <p><b>Le principe qui chapeaute tout ça</b> s'appelle le <b>principe du moindre privilège</b> :
+        chaque compte — humain ou technique — ne reçoit que les droits strictement nécessaires à sa
+        tâche, jamais "au cas où". C'est exactement pourquoi <span class="mono">powerbi_reader</span>
+        ne voit que 13 vues nettoyées du schéma <code>reporting</code>, et rien du schéma
+        <code>public</code> où vivent les vraies tables applicatives.</p>
+    </div>
+  </details>
+
+  <h3 class="section"><span class="n">1.3</span> Panorama des 13 vues disponibles</h3>
+  <p>Le rôle <code>powerbi_reader</code> voit exactement 13 vues dans le schéma <code>reporting</code>,
+    déjà nettoyées de toute donnée personnelle (voir migration <code>072_reporting_powerbi.sql</code>).
+    Chacune est soit une <span class="role dim">dimension</span> (elle décrit un objet — un titre, un
+    utilisateur, une date) soit une <span class="role fait">table de faits</span> (elle enregistre un
+    événement daté — un cours, une transaction).</p>
+
+  <details class="glossary">
+    <summary><span class="ico"></span>Notion — Qu'est-ce qu'une "vue" (et pourquoi on en crée) ?<span class="tag">SQL</span></summary>
+    <div class="body">
+      <p>Une <b>vue</b> (<span class="mono">VIEW</span>) est une requête SQL enregistrée sous un nom,
+        que la base traite comme une table à chaque fois qu'on la lit. Elle ne stocke aucune donnée
+        elle-même — elle recalcule le résultat à la volée à partir des vraies tables.</p>
+      <p><b>Pourquoi le schéma <span class="mono">reporting</span> passe par des vues plutôt que de
+        connecter Power BI directement aux tables applicatives ?</b> Trois raisons concrètes, toutes
+        vérifiées sur ce projet :</p>
+      <p>1. <b>Confidentialité</b> — les vues excluent d'office les colonnes sensibles (email, notes
+        libres, référence de paiement) et remplacent <span class="mono">user_id</span> par un hachage
+        irréversible. Power BI ne voit jamais ce qu'une table brute contiendrait.</p>
+      <p>2. <b>Stabilité</b> — si la structure interne d'une table applicative change, on ajuste la
+        vue une seule fois ; le modèle Power BI, lui, continue de voir les mêmes noms de colonnes.</p>
+      <p>3. <b>Droits d'accès</b> — le rôle <span class="mono">powerbi_reader</span> n'a de permission
+        que sur le schéma <span class="mono">reporting</span>, jamais sur <span class="mono">public</span>
+        où vivent les vraies tables. Une vue est donc aussi une frontière de sécurité.</p>
+    </div>
+  </details>
+
+  <div class="tblwrap">
+  <div class="axis-block">
+    <div class="axis-title"><span class="sw" style="background:var(--accent)"></span>Axe marché BRVM</div>
+    <table class="views">
+      <tr><th>Vue</th><th>Rôle</th><th>Contient</th></tr>
+      <tr><td class="vname">v_stocks</td><td><span class="role dim">dimension</span></td><td>ticker, nom, pays, secteur, devise, actions en circulation, indices</td></tr>
+      <tr><td class="vname">v_quotes_history</td><td><span class="role fait">fait</span></td><td>cours de clôture, variation %, volume, valeur transigée — par titre et par jour</td></tr>
+      <tr><td class="vname">v_fundamentals</td><td><span class="role fait">fait</span></td><td>BNA, DPA, VCA et états financiers par titre et par exercice</td></tr>
+      <tr><td class="vname">v_analyst_forecasts</td><td><span class="role fait">fait</span></td><td>prévisions PE / PB / DY issues des rapports SGI</td></tr>
+      <tr><td class="vname">v_evenements_titres</td><td><span class="role fait">fait</span></td><td>événements sur titres (dividendes, AG, opérations)</td></tr>
+    </table>
+  </div>
+
+  <div class="axis-block">
+    <div class="axis-title"><span class="sw" style="background:var(--focus)"></span>Axe usage applicatif</div>
+    <table class="views">
+      <tr><th>Vue</th><th>Rôle</th><th>Contient</th></tr>
+      <tr><td class="vname">v_user_profiles</td><td><span class="role dim">dimension</span></td><td>profil investisseur, horizon, budget, profil de risque (utilisateur pseudonymisé)</td></tr>
+      <tr><td class="vname">v_analytics_events</td><td><span class="role fait">fait</span></td><td>événements applicatifs (type, titre consulté, horodatage)</td></tr>
+      <tr><td class="vname">v_analyses_quota_daily</td><td><span class="role fait">fait</span></td><td>analyses lancées par jour et par utilisateur</td></tr>
+      <tr><td class="vname">v_blog_page_views</td><td><span class="role fait">fait</span></td><td>lectures d'articles du blog (déjà anonyme par design)</td></tr>
+    </table>
+  </div>
+
+  <div class="axis-block">
+    <div class="axis-title"><span class="sw" style="background:var(--teal)"></span>Axe revenus</div>
+    <table class="views">
+      <tr><th>Vue</th><th>Rôle</th><th>Contient</th></tr>
+      <tr><td class="vname">v_abonnements</td><td><span class="role fait">fait</span></td><td>plan, montant, devise, statut, période — par utilisateur pseudonymisé</td></tr>
+      <tr><td class="vname">v_academie_acces</td><td><span class="role fait">fait</span></td><td>achats d'accès à l'Académie</td></tr>
+      <tr><td class="vname">v_portfolio_transactions</td><td><span class="role fait">fait</span></td><td>achats/ventes déclarés en portefeuille</td></tr>
+    </table>
+  </div>
+
+  <div class="axis-block">
+    <div class="axis-title"><span class="sw" style="background:var(--ink-faint)"></span>Dimension transversale</div>
+    <table class="views">
+      <tr><th>Vue</th><th>Rôle</th><th>Contient</th></tr>
+      <tr><td class="vname">v_dim_date</td><td><span class="role dim">dimension</span></td><td>calendrier 2010-2031 (année, trimestre, mois, jour de semaine) pour la time-intelligence DAX</td></tr>
+    </table>
+  </div>
+  </div>
+
+  <h3 class="section"><span class="n">1.4</span> Les 7 vues retenues pour ce chantier</h3>
+  <p>13 vues d'un coup, c'est trop pour apprendre proprement. On en choisit <b>7</b> — assez pour
+    construire un vrai schéma en étoile sur les 3 axes, sans se noyer :</p>
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Vue</th><th>Rôle</th><th>Pourquoi elle est retenue</th></tr>
+    <tr><td class="vname">v_dim_date</td><td><span class="role dim">dimension</span></td><td>calendrier commun aux 3 axes</td></tr>
+    <tr><td class="vname">v_stocks</td><td><span class="role dim">dimension</span></td><td>décrit les titres utilisés par les deux tables de faits marché</td></tr>
+    <tr><td class="vname">v_user_profiles</td><td><span class="role dim">dimension</span></td><td>décrit les utilisateurs utilisés par les faits usage et revenus</td></tr>
+    <tr><td class="vname">v_quotes_history</td><td><span class="role fait">fait</span></td><td>le plus gros volume de lignes — bon cas d'école pour le nettoyage</td></tr>
+    <tr><td class="vname">v_fundamentals</td><td><span class="role fait">fait</span></td><td>ratios financiers, complète la page Marché</td></tr>
+    <tr><td class="vname">v_analyses_quota_daily</td><td><span class="role fait">fait</span></td><td>le plus simple des faits usage, bon point de départ</td></tr>
+    <tr><td class="vname">v_abonnements</td><td><span class="role fait">fait</span></td><td>alimente la page Revenus</td></tr>
+  </table>
+  </div>
+  <p style="font-size:13px; color:var(--ink-faint)">Les 6 vues restantes (<span class="mono">v_analyst_forecasts</span>,
+    <span class="mono">v_evenements_titres</span>, <span class="mono">v_analytics_events</span>,
+    <span class="mono">v_blog_page_views</span>, <span class="mono">v_academie_acces</span>,
+    <span class="mono">v_portfolio_transactions</span>) restent disponibles — tu pourras les ajouter
+    toi-même une fois les sprints terminés, en répétant exactement la même méthode.</p>
+
+  <h3 class="section"><span class="n">1.5</span> Pourquoi ce schéma tient debout</h3>
+  <p>Les 3 dimensions rayonnent vers les 4 tables de faits — c'est la forme "en étoile" qu'on
+    construira formellement au sprint 4, mais autant voir la cible dès maintenant :</p>
+
+  <details class="glossary">
+    <summary><span class="ico"></span>Notion — Le schéma en étoile : explication, utilité, contexte<span class="tag">Modélisation</span></summary>
+    <div class="body">
+      <p><b>Explication.</b> Un schéma en étoile organise les données autour d'une <b>table de
+        faits</b> centrale (les événements mesurables — un cours, une transaction, une analyse
+        lancée) reliée à plusieurs <b>tables de dimensions</b> qui décrivent le contexte de ces
+        événements (quel titre, quel utilisateur, quelle date). Vu de haut, ça dessine une étoile :
+        les dimensions rayonnent depuis les faits.</p>
+      <p><b>Utilité.</b> C'est la forme que <b>DAX</b> et le moteur de calcul de Power BI attendent
+        pour être rapides et pour que les relations filtrent correctement d'une table à l'autre —
+        filtrer sur une date dans <span class="mono">v_dim_date</span> doit automatiquement restreindre
+        les cours dans <span class="mono">v_quotes_history</span>. Une seule grande table plate (tout
+        mélangé) casse ce comportement et rend les mesures fausses ou lentes.</p>
+      <p><b>Contexte dans ce chantier.</b> Nos 3 dimensions (<span class="mono">v_dim_date</span>,
+        <span class="mono">v_stocks</span>, <span class="mono">v_user_profiles</span>) rayonnent vers
+        4 tables de faits couvrant marché, usage et revenus. Le sprint 4 formalise ces relations dans
+        Power BI ; le sprint 4.7 précisera même qu'avec plusieurs faits partageant les mêmes
+        dimensions, on parle plus justement de <b>schéma en galaxie</b> — une étoile qui s'est
+        multipliée.</p>
+    </div>
+  </details>
+
+  <div class="schema-wrap">
+    <svg viewBox="0 0 640 260" width="100%" style="max-width:640px; display:block;">
+      <!-- connecting lines -->
+      <g stroke="var(--border-strong)" stroke-width="1.5">
+        <line x1="150" y1="55" x2="330" y2="30"></line>
+        <line x1="150" y1="55" x2="330" y2="90"></line>
+        <line x1="150" y1="130" x2="330" y2="90"></line>
+        <line x1="150" y1="130" x2="330" y2="150"></line>
+        <line x1="150" y1="205" x2="330" y2="150"></line>
+        <line x1="150" y1="205" x2="330" y2="210"></line>
+      </g>
+      <!-- dimensions (left) -->
+      <g>
+        <rect x="20" y="35" width="130" height="40" rx="8" fill="var(--teal-soft)" stroke="var(--teal)"></rect>
+        <text x="85" y="59" text-anchor="middle" font-size="12" fill="var(--teal-ink)">v_dim_date</text>
+
+        <rect x="20" y="110" width="130" height="40" rx="8" fill="var(--teal-soft)" stroke="var(--teal)"></rect>
+        <text x="85" y="134" text-anchor="middle" font-size="12" fill="var(--teal-ink)">v_stocks</text>
+
+        <rect x="20" y="185" width="130" height="40" rx="8" fill="var(--teal-soft)" stroke="var(--teal)"></rect>
+        <text x="85" y="209" text-anchor="middle" font-size="12" fill="var(--teal-ink)">v_user_profiles</text>
+      </g>
+      <!-- facts (right) -->
+      <g>
+        <rect x="330" y="10" width="150" height="40" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"></rect>
+        <text x="405" y="34" text-anchor="middle" font-size="12" fill="var(--accent-ink)">v_quotes_history</text>
+
+        <rect x="330" y="70" width="150" height="40" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"></rect>
+        <text x="405" y="94" text-anchor="middle" font-size="12" fill="var(--accent-ink)">v_fundamentals</text>
+
+        <rect x="330" y="130" width="150" height="40" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"></rect>
+        <text x="405" y="154" text-anchor="middle" font-size="11.5" fill="var(--accent-ink)">v_analyses_quota_daily</text>
+
+        <rect x="330" y="190" width="150" height="40" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"></rect>
+        <text x="405" y="214" text-anchor="middle" font-size="12" fill="var(--accent-ink)">v_abonnements</text>
+      </g>
+      <text x="505" y="235" font-size="10.5" fill="var(--ink-faint)" font-family="IBM Plex Mono">dimensions → faits</text>
+    </svg>
+  </div>
+
+  <h3 class="section"><span class="n">1.6</span> Premier chargement dans Power BI Desktop</h3>
+  <p>La connexion PostgreSQL est déjà configurée avec le rôle <code>powerbi_reader</code> — on part
+    directement du navigateur de sources :</p>
+  <ol>
+    <li>Ouvre Power BI Desktop → onglet <b>Accueil</b> → <b>Obtenir les données</b> → reconnecte-toi à
+      ta base PostgreSQL avec les identifiants <code>powerbi_reader</code> déjà utilisés.</li>
+    <li>Dans le <b>Navigateur</b>, déplie uniquement le schéma <code>reporting</code> (jamais
+      <code>public</code> — le rôle n'y a de toute façon aucun accès).</li>
+    <li>Coche les <b>7 vues</b> listées en 1.4 (et elles seules, pour ce chantier).</li>
+    <li>En bas du Navigateur, choisis le mode <b>Import</b> — pas <i>DirectQuery</i>. Le pooler Supabase
+      n'est pas dimensionné pour des requêtes répétées en direct depuis Power BI ; Import rapatrie les
+      données une fois et les stocke dans le fichier <code>.pbix</code>.</li>
+    <li>Clique sur <b>Transformer les données</b> (pas <i>Charger</i>) — ça ouvre l'éditeur Power Query,
+      où on travaillera aux sprints 2 et 3 avant de charger quoi que ce soit dans le modèle.</li>
+  </ol>
+  <div class="callout">
+    <b>Pourquoi "Transformer" et pas "Charger" ?</b> Une fois chargées telles quelles, corriger un type
+    de colonne ou renommer un champ oblige à tout retélécharger. Passer par Power Query d'abord permet
+    de préparer les données une bonne fois, avant qu'elles n'entrent dans le modèle.
+  </div>
+
+  <h3 class="section"><span class="n">1.7</span> Repérer l'éditeur Power Query</h3>
+  <p>Voici ce que tu dois voir à l'écran une fois dans l'éditeur — utile pour t'y retrouver au sprint 2 :</p>
+  <div class="pq-mock">
+    <div class="pq-ribbon">
+      <span class="on">Accueil</span><span>Transformer</span><span>Ajouter une colonne</span><span>Afficher</span><span>Outils</span>
+    </div>
+    <div class="pq-body">
+      <div class="pq-col pq-queries">
+        <h4>Requêtes (7)</h4>
+        <div class="sel">v_quotes_history</div>
+        <div>v_stocks</div>
+        <div>v_fundamentals</div>
+        <div>v_user_profiles</div>
+        <div>v_analyses_quota_daily</div>
+        <div>v_abonnements</div>
+        <div>v_dim_date</div>
+      </div>
+      <div class="pq-col">
+        <h4>Aperçu — v_quotes_history</h4>
+        <div class="pq-grid">
+          <div class="hdr"><span>ticker</span><span>close</span><span>session_date</span></div>
+          <div class="typ"><span>ABC123</span><span>ABC123</span><span>ABC123</span></div>
+          <div class="row"><span>SNTS</span><span>18500</span><span>2026-09-10</span></div>
+          <div class="row"><span>SGBC</span><span>7200</span><span>2026-09-10</span></div>
+          <div class="row"><span>ORAC</span><span>9950</span><span>2026-09-10</span></div>
+        </div>
+        <p style="font-size:11px; color:var(--ink-faint); margin-top:6px;">La ligne "ABC123" sous les
+          en-têtes = le type de données de chaque colonne. On la corrigera au sprint 2.</p>
+      </div>
+      <div class="pq-col">
+        <h4>Étapes appliquées</h4>
+        <div class="pq-steps">
+          <div>Source</div>
+          <div class="cur">Navigation</div>
+        </div>
+        <p style="font-size:11px; color:var(--ink-faint); margin-top:10px;">Chaque action que tu feras
+          au sprint 2 (renommer, filtrer, changer un type…) s'ajoute ici comme une étape — modifiable,
+          supprimable, dans l'ordre.</p>
+      </div>
+    </div>
+    <div class="pq-fx"><b>fx</b> = Table.NavigateToNavigationTable(...) — la barre de formule, où chaque étape s'écrit en langage M</div>
+  </div>
+
+  <h3 class="section"><span class="n">1.8</span> À faire avant le sprint 2</h3>
+  <ul class="checklist">
+    <li><input type="checkbox" id="c1-1" onchange="__brvmToggleChecklist(this)"><label for="c1-1">Les 7 vues sont visibles dans le volet Requêtes de Power Query</label></li>
+    <li><input type="checkbox" id="c1-2" onchange="__brvmToggleChecklist(this)"><label for="c1-2">Le mode <span class="mono">Import</span> a bien été choisi (pas DirectQuery)</label></li>
+    <li><input type="checkbox" id="c1-3" onchange="__brvmToggleChecklist(this)"><label for="c1-3">Tu retrouves les 3 zones de l'éditeur : Requêtes, Aperçu, Étapes appliquées</label></li>
+    <li><input type="checkbox" id="c1-4" onchange="__brvmToggleChecklist(this)"><label for="c1-4">Tu n'as encore cliqué sur aucun bouton de transformation — on garde les données brutes pour le sprint 2</label></li>
+  </ul>
+
+  <div class="footfoot">
+    <span>Sprint 1 / 7 — vue d'ensemble &amp; premier chargement</span>
+    <span>Prochain : <b style="color:var(--ink)">Sprint 2 — Nettoyage des données</b></span>
+  </div>
+
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SPRINT 2 — contenu complet                                    -->
+<!-- ============================================================ -->
+<div class="panel" id="panel-2">
+<div class="card stack">
+
+  <div class="sprint-head">
+    <span class="tag">Sprint 2</span>
+    <h2>Nettoyage des données</h2>
+  </div>
+  <p class="lede">Objectif : que les 7 tables aient des types corrects, des valeurs nulles gérées en
+    connaissance de cause, aucun doublon, et des noms de colonnes lisibles — avant de passer à la
+    transformation (sprint 3) et au modèle (sprint 4).</p>
+
+  <h3 class="section"><span class="n">2.1</span> Le principe : une recette, pas un bricolage</h3>
+  <p>Chaque action que tu fais dans l'éditeur Power Query — changer un type, renommer une colonne,
+    filtrer une ligne — s'ajoute comme une <b>étape</b> dans le volet <span class="mono">Étapes
+    appliquées</span> (repéré au sprint 1). Deux conséquences importantes :</p>
+  <ul>
+    <li>Rien n'est destructif : tu peux revenir sur une étape, la modifier ou la supprimer sans tout
+      recommencer.</li>
+    <li>L'ordre compte : chaque étape s'appuie sur le résultat de la précédente. On nettoie donc dans
+      un ordre précis (2.6), pas au hasard.</li>
+  </ul>
+  <div class="callout info">
+    <b>Repère utile :</b> à tout moment, clique sur une étape passée dans la liste pour voir l'état des
+    données à ce stade précis — pratique pour comprendre ce qu'une étape a changé.
+  </div>
+
+  <h3 class="section"><span class="n">2.2</span> Corriger les types de données</h3>
+  <p>Power Query devine les types automatiquement à l'import, mais il se trompe souvent sur les dates
+    et sur les montants. Sélectionne la colonne → onglet <b>Accueil</b> → <b>Type de données</b> (ou
+    clique sur l'icône de type dans l'en-tête de colonne).</p>
+  <div class="callout info">
+    <b>Règle de lecture des 7 tableaux ci-dessous :</b> chaque vue est listée avec <i>l'intégralité</i>
+    de ses colonnes — aucune n'est passée sous silence. Une colonne marquée <span class="mono">Texte —
+    déjà correct</span> n'a besoin d'aucune action : Power Query la détecte bien telle quelle, on la
+    laisse. Seules les colonnes marquées avec un type numérique, date ou logique doivent être corrigées
+    manuellement, comme expliqué plus haut.
+  </div>
+
+  <p style="margin:18px 0 6px"><b>v_quotes_history</b> <span style="color:var(--ink-faint); font-weight:400;">— 8 colonnes</span></p>
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Colonne</th><th>Type Power Query correct</th></tr>
+    <tr><td class="vname">ticker</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">close</td><td>Nombre décimal fixe</td></tr>
+    <tr><td class="vname">change_pct</td><td>Nombre décimal fixe</td></tr>
+    <tr><td class="vname">direction</td><td>Texte — déjà correct <span class="mono">(up / down / unchanged)</span></td></tr>
+    <tr><td class="vname">session_date</td><td>Date</td></tr>
+    <tr><td class="vname">volume</td><td>Nombre entier</td></tr>
+    <tr><td class="vname">valeur_transigee</td><td>Nombre décimal fixe</td></tr>
+    <tr><td class="vname">per_officiel</td><td>Nombre décimal fixe</td></tr>
+  </table>
+  </div>
+
+  <p style="margin:18px 0 6px"><b>v_stocks</b> <span style="color:var(--ink-faint); font-weight:400;">— 8 colonnes</span></p>
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Colonne</th><th>Type Power Query correct</th></tr>
+    <tr><td class="vname">ticker</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">name</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">country</td><td>Texte — déjà correct <span class="mono">(CI, SN, BF…)</span></td></tr>
+    <tr><td class="vname">sector</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">currency</td><td>Texte — déjà correct <span class="mono">(XOF)</span></td></tr>
+    <tr><td class="vname">shares_outstanding</td><td>Nombre entier</td></tr>
+    <tr><td class="vname">is_active</td><td>Vrai/Faux</td></tr>
+    <tr><td class="vname">indices</td><td>Texte — déjà correct <span class="mono">(ex. BRVM30, BRVM-C)</span></td></tr>
+  </table>
+  </div>
+
+  <p style="margin:18px 0 6px"><b>v_fundamentals</b> <span style="color:var(--ink-faint); font-weight:400;">— 21 colonnes</span></p>
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Colonne</th><th>Type Power Query correct</th></tr>
+    <tr><td class="vname">ticker</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">fiscal_year</td><td>Nombre entier</td></tr>
+    <tr><td class="vname">bna</td><td>Nombre décimal fixe</td></tr>
+    <tr><td class="vname">dpa</td><td>Nombre décimal fixe</td></tr>
+    <tr><td class="vname">vca</td><td>Nombre décimal fixe</td></tr>
+    <tr><td class="vname">bna_growth_1y</td><td>Nombre décimal <span class="mono">(croissance %, pas de l'argent)</span></td></tr>
+    <tr><td class="vname">bna_growth_3y</td><td>Nombre décimal</td></tr>
+    <tr><td class="vname">source</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">ca_xof</td><td>Nombre décimal fixe</td></tr>
+    <tr><td class="vname">resultat_net_xof</td><td>Nombre décimal fixe</td></tr>
+    <tr><td class="vname">dividendes_xof</td><td>Nombre décimal fixe</td></tr>
+    <tr><td class="vname">pnb_xof</td><td>Nombre décimal fixe <span class="mono">(banques seulement)</span></td></tr>
+    <tr><td class="vname">rbe_xof</td><td>Nombre décimal fixe <span class="mono">(banques seulement)</span></td></tr>
+    <tr><td class="vname">credit_xof</td><td>Nombre décimal fixe <span class="mono">(banques seulement)</span></td></tr>
+    <tr><td class="vname">depot_xof</td><td>Nombre décimal fixe <span class="mono">(banques seulement)</span></td></tr>
+    <tr><td class="vname">provisions_xof</td><td>Nombre décimal fixe <span class="mono">(banques seulement)</span></td></tr>
+    <tr><td class="vname">creances_douteuses_xof</td><td>Nombre décimal fixe <span class="mono">(banques seulement)</span></td></tr>
+    <tr><td class="vname">resultat_hao_xof</td><td>Nombre décimal fixe</td></tr>
+    <tr><td class="vname">marge_interets_xof</td><td>Nombre décimal fixe <span class="mono">(banques seulement)</span></td></tr>
+    <tr><td class="vname">commissions_nettes_xof</td><td>Nombre décimal fixe <span class="mono">(banques seulement)</span></td></tr>
+    <tr><td class="vname">resultat_marche_xof</td><td>Nombre décimal fixe <span class="mono">(banques seulement)</span></td></tr>
+    <tr><td class="vname">updated_at</td><td>Date/Heure</td></tr>
+  </table>
+  </div>
+  <p style="font-size:13px; color:var(--ink-faint)">Les colonnes marquées "banques seulement" sont
+    <span class="mono">null</span> pour une société non-bancaire — c'est normal, pas une donnée
+    manquante (détaillé en 2.3).</p>
+
+  <p style="margin:18px 0 6px"><b>v_user_profiles</b> <span style="color:var(--ink-faint); font-weight:400;">— 11 colonnes</span></p>
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Colonne</th><th>Type Power Query correct</th></tr>
+    <tr><td class="vname">pseudo_user_key</td><td>Texte — déjà correct <span class="mono">(hash, pas un identifiant réel)</span></td></tr>
+    <tr><td class="vname">type_investisseur</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">horizon_valeur</td><td>Nombre entier</td></tr>
+    <tr><td class="vname">horizon_unite</td><td>Texte — déjà correct <span class="mono">(ans / semaines)</span></td></tr>
+    <tr><td class="vname">budget_xof</td><td>Nombre décimal fixe</td></tr>
+    <tr><td class="vname">profil_risque</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">objectif_rendement_pct</td><td>Nombre décimal</td></tr>
+    <tr><td class="vname">is_active</td><td>Vrai/Faux</td></tr>
+    <tr><td class="vname">rendement_min_pct</td><td>Nombre décimal</td></tr>
+    <tr><td class="vname">created_at</td><td>Date/Heure</td></tr>
+    <tr><td class="vname">updated_at</td><td>Date/Heure</td></tr>
+  </table>
+  </div>
+
+  <p style="margin:18px 0 6px"><b>v_analyses_quota_daily</b> <span style="color:var(--ink-faint); font-weight:400;">— 4 colonnes</span></p>
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Colonne</th><th>Type Power Query correct</th></tr>
+    <tr><td class="vname">pseudo_user_key</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">jour</td><td>Date</td></tr>
+    <tr><td class="vname">ticker</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">created_at</td><td>Date/Heure</td></tr>
+  </table>
+  </div>
+
+  <p style="margin:18px 0 6px"><b>v_abonnements</b> <span style="color:var(--ink-faint); font-weight:400;">— 13 colonnes</span></p>
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Colonne</th><th>Type Power Query correct</th></tr>
+    <tr><td class="vname">pseudo_user_key</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">plan</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">montant</td><td>Nombre décimal fixe</td></tr>
+    <tr><td class="vname">devise</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">statut</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">periode</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">operateur</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">date_debut</td><td>Date</td></tr>
+    <tr><td class="vname">date_fin</td><td>Date</td></tr>
+    <tr><td class="vname">relance_j5_envoyee</td><td>Vrai/Faux</td></tr>
+    <tr><td class="vname">relance_j2_envoyee</td><td>Vrai/Faux</td></tr>
+    <tr><td class="vname">created_at</td><td>Date/Heure</td></tr>
+    <tr><td class="vname">updated_at</td><td>Date/Heure</td></tr>
+  </table>
+  </div>
+
+  <p style="margin:18px 0 6px"><b>v_dim_date</b> <span style="color:var(--ink-faint); font-weight:400;">— 9 colonnes</span></p>
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Colonne</th><th>Type Power Query correct</th></tr>
+    <tr><td class="vname">date_jour</td><td>Date <span class="mono">(+ marquer "table de dates" en 4.x)</span></td></tr>
+    <tr><td class="vname">annee</td><td>Nombre entier</td></tr>
+    <tr><td class="vname">trimestre</td><td>Nombre entier</td></tr>
+    <tr><td class="vname">mois</td><td>Nombre entier</td></tr>
+    <tr><td class="vname">nom_mois</td><td>Texte — déjà correct</td></tr>
+    <tr><td class="vname">semaine</td><td>Nombre entier</td></tr>
+    <tr><td class="vname">jour_mois</td><td>Nombre entier</td></tr>
+    <tr><td class="vname">jour_semaine</td><td>Nombre entier</td></tr>
+    <tr><td class="vname">nom_jour_semaine</td><td>Texte — déjà correct</td></tr>
+  </table>
+  </div>
+
+  <div class="callout">
+    <b>Pourquoi "Nombre décimal fixe" et pas "Nombre décimal" pour les montants FCFA ?</b> Le type
+    <span class="mono">Nombre décimal</span> est un flottant binaire — il peut introduire de minuscules
+    erreurs d'arrondi invisibles à l'écran mais qui s'accumulent dans un total. <span class="mono">Nombre
+    décimal fixe</span> (precision fixe, 4 décimales) est exact — c'est le bon choix pour tout ce qui
+    représente de l'argent (cours, montants, dividendes, budgets). Les pourcentages et taux de
+    croissance (<span class="mono">change_pct, objectif_rendement_pct, bna_growth_1y</span>…) restent en
+    "Nombre décimal" simple — ce ne sont pas des montants.
+  </div>
+
+  <pre class="codebox">= Table.TransformColumnTypes(#"Navigation",{
+    {"session_date", <span class="c">type date</span>},
+    {"close", <span class="c">type number</span>},
+    {"volume", <span class="c">Int64.Type</span>}
+})</pre>
+  <p style="font-size:12.5px; color:var(--ink-faint)">Ce que Power Query écrit tout seul en langage M
+    quand tu changes des types depuis le ruban — visible dans la barre de formule (fx).</p>
+
+  <h3 class="section"><span class="n">2.3</span> Valeurs nulles : ne pas nettoyer à l'aveugle</h3>
+  <p>Sur ce jeu de données, un <span class="mono">null</span> n'est pas toujours une erreur — c'est
+    parfois l'information elle-même. Deux cas très différents à traiter différemment :</p>
+  <ul>
+    <li><b>pseudo_user_key nul</b> (dans v_user_profiles, v_abonnements, v_analyses_quota_daily) :
+      l'événement n'est rattaché à aucun utilisateur identifié (action système, session anonyme). Selon
+      ce que la page doit montrer, tu <i>filtres</i> ces lignes ou tu les gardes sous un segment
+      "Non attribué" — mais tu ne les supprimes jamais sans le décider explicitement.</li>
+    <li><b>Colonnes bancaires nulles dans v_fundamentals</b> (pnb_xof, rbe_xof, credit_xof, depot_xof,
+      marge_interets_xof…) : ces ratios n'existent que pour les banques. Un null ici sur une société
+      commerciale (ex. Sonatel, Orange CI) n'est <b>pas une donnée manquante</b> — c'est normal, la
+      colonne ne s'applique pas.</li>
+  </ul>
+  <div class="callout">
+    <b>Piège à éviter :</b> remplacer ces nulls bancaires par <span class="mono">0</span> "pour que ça
+    calcule" fausserait toute moyenne ou tout total sur ces colonnes (une société non-bancaire
+    apparaîtrait avec un PNB de 0 FCFA au lieu de "non applicable"). Laisse le null tel quel — DAX
+    l'ignore correctement dans <span class="mono">AVERAGE</span>/<span class="mono">SUM</span> ; c'est
+    seulement dans les visuels qu'on choisira d'exclure les non-banques (sprint 6).
+  </div>
+  <p>Un vrai nettoyage de nulls reste utile dans un cas : une ligne <i>entièrement</i> vide ou une clé
+    de jointure absente (ex. <span class="mono">ticker</span> nul dans v_quotes_history, qui rendrait la
+    ligne inutilisable). Là, <b>Accueil → Réduire les lignes → Supprimer les lignes → Supprimer les
+    lignes vides</b>, ou un clic droit sur l'en-tête de colonne → <b>Supprimer les lignes vides</b>
+    ciblé sur la colonne clé.</p>
+
+  <h3 class="section"><span class="n">2.4</span> Éliminer les doublons — sur la bonne clé</h3>
+  <p>Clic droit sur l'en-tête de colonne → <b>Supprimer les doublons</b>, ou sélectionne plusieurs
+    colonnes avant de faire l'opération. Le piège : Power Query déduplique sur <i>les colonnes que tu as
+    sélectionnées</i>, pas sur la ligne entière si tu n'en sélectionnes qu'une ou deux.</p>
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Vue</th><th>Clé d'unicité à sélectionner</th></tr>
+    <tr><td class="vname">v_quotes_history</td><td>ticker + session_date</td></tr>
+    <tr><td class="vname">v_fundamentals</td><td>ticker + fiscal_year</td></tr>
+    <tr><td class="vname">v_stocks</td><td>ticker</td></tr>
+    <tr><td class="vname">v_analyses_quota_daily</td><td>pseudo_user_key + jour + ticker</td></tr>
+  </table>
+  </div>
+  <p style="font-size:13px; color:var(--ink-faint)">v_abonnements, v_user_profiles et v_dim_date sont
+    déjà à une ligne par clé naturelle dans leur définition — un contrôle rapide (tri + inspection
+    visuelle) suffit, pas besoin de déduplication systématique.</p>
+
+  <h3 class="section"><span class="n">2.5</span> Renommer pour la lisibilité — en dernier</h3>
+  <p>Double-clic sur l'en-tête de colonne (ou clic droit → <b>Renommer</b>) pour donner des noms clairs,
+    qui apparaîtront tels quels dans les visuels du dashboard. Quelques renommages utiles pour la suite :</p>
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Nom technique</th><th>Nom d'affichage</th></tr>
+    <tr><td class="vname">close</td><td>Cours de clôture</td></tr>
+    <tr><td class="vname">change_pct</td><td>Variation (%)</td></tr>
+    <tr><td class="vname">valeur_transigee</td><td>Valeur transigée (FCFA)</td></tr>
+    <tr><td class="vname">bna</td><td>BNA (FCFA)</td></tr>
+    <tr><td class="vname">dpa</td><td>DPA (FCFA)</td></tr>
+    <tr><td class="vname">montant</td><td>Montant abonnement (FCFA)</td></tr>
+    <tr><td class="vname">jour</td><td>Date analyse</td></tr>
+  </table>
+  </div>
+  <div class="callout info">
+    <b>Pourquoi en dernier ?</b> Tant que tu corriges des types ou filtres des lignes, tu veux pouvoir
+    relire tes étapes avec les noms d'origine (ceux de la migration SQL), qui sont sans ambiguïté.
+    Renommer en dernier évite aussi de devoir mettre à jour des étapes précédentes qui référencent
+    encore l'ancien nom.
+  </div>
+
+  <h3 class="section"><span class="n">2.6</span> L'ordre conseillé, de bout en bout</h3>
+  <ol>
+    <li>Types de données corrigés (2.2)</li>
+    <li>Lignes vraiment inutilisables supprimées — clé de jointure nulle (2.3)</li>
+    <li>Doublons supprimés sur la bonne clé (2.4)</li>
+    <li>Colonnes renommées (2.5)</li>
+  </ol>
+  <p>Sur <span class="mono">v_quotes_history</span>, ça donne cette recette dans le volet Étapes
+    appliquées :</p>
+  <div class="pq-mock">
+    <div class="pq-body" style="grid-template-columns:1fr;">
+      <div class="pq-col" style="border-right:0;">
+        <h4>Étapes appliquées — v_quotes_history</h4>
+        <div class="pq-steps">
+          <div>Source</div>
+          <div>Navigation</div>
+          <div>Type modifié</div>
+          <div>Lignes filtrées (ticker non vide)</div>
+          <div>Doublons supprimés</div>
+          <div class="cur">Colonnes renommées</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="section"><span class="n">2.7</span> À faire avant le sprint 3</h3>
+  <ul class="checklist">
+    <li><input type="checkbox" id="c2-1" onchange="__brvmToggleChecklist(this)"><label for="c2-1">Les types de données des 7 tables correspondent aux tableaux de 2.2, colonne par colonne (vérifie l'icône de type dans chaque en-tête)</label></li>
+    <li><input type="checkbox" id="c2-2" onchange="__brvmToggleChecklist(this)"><label for="c2-2">Tu sais dire, pour chaque table, quels nulls sont légitimes et lesquels ne le sont pas</label></li>
+    <li><input type="checkbox" id="c2-3" onchange="__brvmToggleChecklist(this)"><label for="c2-3">Les doublons ont été supprimés sur la clé d'unicité de chaque table (2.4), pas sur une colonne au hasard</label></li>
+    <li><input type="checkbox" id="c2-4" onchange="__brvmToggleChecklist(this)"><label for="c2-4">Les colonnes principales ont des noms d'affichage clairs</label></li>
+  </ul>
+
+  <div class="footfoot">
+    <span>Sprint 2 / 7 — nettoyage des données</span>
+    <span>Prochain : <b style="color:var(--ink)">Sprint 3 — Transformation</b></span>
+  </div>
+
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SPRINT 3 — contenu complet                                    -->
+<!-- ============================================================ -->
+<div class="panel" id="panel-3">
+<div class="card stack">
+
+  <div class="sprint-head">
+    <span class="tag">Sprint 3</span>
+    <h2>Transformation</h2>
+  </div>
+  <p class="lede">Objectif : ajouter les colonnes qui manquent (calculées, conditionnelles), savoir
+    quand aller chercher une information dans une autre table par fusion — et surtout, savoir quand
+    <b>ne pas</b> le faire, parce qu'une relation (sprint 4) fera mieux le travail.</p>
+
+  <h3 class="section"><span class="n">3.1</span> Trois façons d'ajouter une colonne</h3>
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Type</th><th>Où</th><th>Pour</th></tr>
+    <tr><td class="vname">Colonne personnalisée</td><td>Ajouter une colonne → Colonne personnalisée</td><td>un calcul sur les colonnes déjà présentes dans la table (formule M libre)</td></tr>
+    <tr><td class="vname">Colonne conditionnelle</td><td>Ajouter une colonne → Colonne conditionnelle</td><td>un si/alors/sinon guidé par une interface, sans écrire de M</td></tr>
+    <tr><td class="vname">Colonne fusionnée</td><td>Accueil → Fusionner les requêtes</td><td>une information qui vit dans une <i>autre</i> table</td></tr>
+  </table>
+  </div>
+
+  <h3 class="section"><span class="n">3.2</span> Colonne personnalisée — rendre un montant lisible</h3>
+  <p>Sur <span class="mono">v_quotes_history</span>, les valeurs transigées sont en FCFA bruts (parfois
+    plusieurs centaines de millions) — illisibles sur l'axe d'un graphique. On ajoute une colonne en
+    millions :</p>
+  <ol>
+    <li><b>Ajouter une colonne</b> → <b>Colonne personnalisée</b></li>
+    <li>Nom : <span class="mono">Valeur transigée (M FCFA)</span></li>
+    <li>Formule : <span class="mono">[Valeur transigée (FCFA)] / 1000000</span></li>
+  </ol>
+  <pre class="codebox">= Table.AddColumn(#"Colonnes renommées", <span class="c">"Valeur transigée (M FCFA)"</span>,
+    each [Valeur transigée (FCFA)] / 1000000, <span class="c">type number</span>)</pre>
+  <div class="callout info">
+    <b>Réflexe à prendre :</b> une colonne personnalisée sort presque toujours en type
+    <span class="mono">Quelconque</span> même si le résultat est numérique — vérifie et corrige son
+    type juste après création (clic sur l'icône de type dans l'en-tête), sinon elle ne s'agrège pas
+    correctement dans le modèle.
+  </div>
+
+  <h3 class="section"><span class="n">3.3</span> Colonne conditionnelle — réutiliser ce qu'on a compris des nulls</h3>
+  <p>Au sprint 2 (2.3), on a vu qu'un <span class="mono">pnb_xof</span> nul dans
+    <span class="mono">v_fundamentals</span> signifie "ce n'est pas une banque". On transforme cette
+    observation en colonne exploitable pour filtrer/comparer plus tard :</p>
+  <ol>
+    <li><b>Ajouter une colonne</b> → <b>Colonne conditionnelle</b></li>
+    <li>Nom de sortie : <span class="mono">Type de société</span></li>
+    <li>Clause : Si <span class="mono">pnb_xof</span> est <span class="mono">null</span> Alors
+      <span class="mono">"Non-bancaire"</span> Sinon <span class="mono">"Banque"</span></li>
+  </ol>
+  <p>Même logique pour segmenter les volumes de <span class="mono">v_quotes_history</span> — une
+    colonne conditionnelle à seuils, utile pour un futur visuel :</p>
+  <ol>
+    <li>Si <span class="mono">volume</span> &lt; 1 000 Alors <span class="mono">"Faible"</span></li>
+    <li>Sinon si <span class="mono">volume</span> &lt; 10 000 Alors <span class="mono">"Moyen"</span></li>
+    <li>Sinon <span class="mono">"Élevé"</span></li>
+  </ol>
+  <p style="font-size:12.5px; color:var(--ink-faint)">L'interface "Colonne conditionnelle" gère
+    elle-même l'ordre des clauses (elle génère un <span class="mono">if … then … else if …</span> en M)
+    — pas besoin d'écrire la formule à la main pour celle-ci.</p>
+
+  <h3 class="section"><span class="n">3.4</span> Fusion de requêtes — aller chercher une info ailleurs</h3>
+  <p>Avant de fusionner quoi que ce soit, <b>duplique la requête</b> que tu veux tester : clic droit sur
+    <span class="mono">v_quotes_history</span> dans le volet Requêtes → <b>Dupliquer</b>. Renomme la
+    copie <span class="mono">Sandbox fusion</span>. Tu expérimentes dessus, jamais sur la vraie table —
+    si le résultat ne te convient pas, tu supprimes juste la copie.</p>
+  <p>Sur cette copie, <b>Accueil → Fusionner les requêtes</b> avec <span class="mono">v_stocks</span>,
+    en faisant correspondre <span class="mono">ticker</span> des deux côtés :</p>
+  <div class="merge-mock">
+    <div class="merge-tables">
+      <div class="t">
+        <h4>Sandbox fusion</h4>
+        <div class="col">Cours de clôture</div>
+        <div class="col match">ticker</div>
+        <div class="col">session_date</div>
+      </div>
+      <div class="t">
+        <h4>v_stocks</h4>
+        <div class="col match">ticker</div>
+        <div class="col">sector</div>
+        <div class="col">shares_outstanding</div>
+      </div>
+    </div>
+    <div class="merge-join">
+      <span>Externe droite</span><span class="on">Externe gauche</span><span>Interne</span><span>Anti gauche</span>
+    </div>
+  </div>
+  <p>Choisis <b>Externe gauche</b> (garde toutes les lignes de cours, même si un ticker n'a
+    exceptionnellement pas de fiche dans v_stocks). Valide, puis clique sur la petite icône ⤢ dans la
+    nouvelle colonne pour <b>développer</b> les champs voulus (<span class="mono">shares_outstanding</span>).
+    Ajoute enfin une colonne personnalisée <span class="mono">Capitalisation boursière (FCFA)</span> =
+    <span class="mono">[Cours de clôture] * [shares_outstanding]</span>.</p>
+
+  <h3 class="section"><span class="n">3.5</span> Fusion ou relation ? La question à se poser à chaque fois</h3>
+  <p>Tu viens de fusionner deux tables pour obtenir une capitalisation boursière. Au sprint 4, tu vas
+    créer une <b>relation</b> entre les mêmes deux tables. Les deux se ressemblent — elles ne servent pas
+    au même besoin :</p>
+  <div class="decide">
+    <div class="box a">
+      <h4>Relation (sprint 4)</h4>
+      <p style="margin-top:0; font-size:13px;">Tu veux filtrer/trancher une table de faits par un
+        attribut d'une dimension (secteur, pays, profil de risque…) dans tes visuels.</p>
+      <ul><li>Aucune donnée dupliquée</li><li>Un seul modèle, propre et léger</li><li>C'est le cas de 95% des besoins de ce dashboard</li></ul>
+    </div>
+    <div class="box b">
+      <h4>Fusion (Power Query)</h4>
+      <p style="margin-top:0; font-size:13px;">Tu veux un <i>calcul</i> qui combine des colonnes de
+        deux tables en une seule valeur, ligne par ligne (comme la capitalisation ci-dessus).</p>
+      <ul><li>Duplique les données dans la table de résultat</li><li>À réserver aux cas où une relation ne suffit pas</li></ul>
+    </div>
+  </div>
+  <div class="callout">
+    <b>Verdict pour la capitalisation boursière :</b> une fois la relation v_stocks → v_quotes_history
+    posée (sprint 4), la même valeur s'obtient en DAX avec
+    <span class="mono">RELATED('v_stocks'[shares_outstanding])</span> sans dupliquer aucune donnée
+    (sprint 5). La fusion de 3.4 t'a servi à <i>comprendre</i> le mécanisme — mais pour ce chantier,
+    laisse le chargement de <span class="mono">Sandbox fusion</span> désactivé (clic droit sur la
+    requête → décoche <b>Activer le chargement</b>) : elle reste dans ton fichier pour référence, sans
+    polluer le modèle final.
+  </div>
+
+  <h3 class="section"><span class="n">3.6</span> v_dim_date : rien à transformer, et c'est voulu</h3>
+  <p>Résiste à la tentation d'ajouter une colonne "Année" séparée sur chaque table de faits en la
+    recalculant depuis <span class="mono">session_date</span> ou <span class="mono">jour</span> — c'est
+    exactement le doublon que <span class="mono">v_dim_date</span> existe pour éviter. Vérifie juste
+    que le type de <span class="mono">date_jour</span> est bien <span class="mono">Date</span> (fait au
+    sprint 2) : la table est prête à être reliée telle quelle au sprint 4.</p>
+
+  <h3 class="section"><span class="n">3.7</span> À faire avant le sprint 4</h3>
+  <ul class="checklist">
+    <li><input type="checkbox" id="c3-1" onchange="__brvmToggleChecklist(this)"><label for="c3-1"><span class="mono">Valeur transigée (M FCFA)</span> existe sur v_quotes_history, en type Nombre</label></li>
+    <li><input type="checkbox" id="c3-2" onchange="__brvmToggleChecklist(this)"><label for="c3-2"><span class="mono">Type de société</span> (Banque/Non-bancaire) existe sur v_fundamentals</label></li>
+    <li><input type="checkbox" id="c3-3" onchange="__brvmToggleChecklist(this)"><label for="c3-3">Tu as fait l'exercice de fusion sur une requête dupliquée, jamais sur les 7 tables originales</label></li>
+    <li><input type="checkbox" id="c3-4" onchange="__brvmToggleChecklist(this)"><label for="c3-4">Tu sais expliquer, dans tes mots, la différence entre fusionner et relier</label></li>
+    <li><input type="checkbox" id="c3-5" onchange="__brvmToggleChecklist(this)"><label for="c3-5">Le chargement de la requête sandbox est désactivé</label></li>
+  </ul>
+
+  <div class="footfoot">
+    <span>Sprint 3 / 7 — transformation</span>
+    <span>Prochain : <b style="color:var(--ink)">Sprint 4 — Modélisation</b></span>
+  </div>
+
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SPRINT 4 — contenu complet                                    -->
+<!-- ============================================================ -->
+<div class="panel" id="panel-4">
+<div class="card stack">
+
+  <div class="sprint-head">
+    <span class="tag">Sprint 4</span>
+    <h2>Modélisation</h2>
+  </div>
+  <p class="lede">Objectif : relier correctement les 7 tables entre elles, comprendre les deux ou trois
+    pièges classiques de cardinalité, marquer la table de dates, et écrire tes trois premières mesures
+    DAX. C'est le sprint le plus dense — prends ton temps.</p>
+
+  <h3 class="section"><span class="n">4.1</span> Passer de Power Query au modèle</h3>
+  <p><b>Accueil → Fermer et appliquer.</b> Les 7 requêtes se chargent réellement dans le modèle pour la
+    première fois (jusqu'ici tu ne travaillais que sur un aperçu). Ça peut prendre quelques dizaines de
+    secondes — <span class="mono">v_dim_date</span> à elle seule contient plus de 8 000 lignes
+    (2010-2031).</p>
+  <p>Une fois chargé, passe dans la <b>vue Modèle</b> (icône en forme de schéma de tables, dans le
+    rail vertical à gauche de l'écran — sous les icônes Rapport et Données).</p>
+
+  <h3 class="section"><span class="n">4.2</span> Vérifier les relations déjà auto-détectées</h3>
+  <p>Power BI tente de deviner des relations à partir de colonnes de même nom. Il a probablement déjà
+    créé, sans que tu n'aies rien fait :</p>
+  <ul>
+    <li><span class="mono">v_stocks[ticker]</span> ↔ <span class="mono">v_quotes_history[ticker]</span></li>
+    <li><span class="mono">v_stocks[ticker]</span> ↔ <span class="mono">v_fundamentals[ticker]</span></li>
+    <li><span class="mono">v_user_profiles[pseudo_user_key]</span> ↔ <span class="mono">v_analyses_quota_daily[pseudo_user_key]</span></li>
+    <li><span class="mono">v_user_profiles[pseudo_user_key]</span> ↔ <span class="mono">v_abonnements[pseudo_user_key]</span></li>
+  </ul>
+  <p>Vérifie chacune en double-cliquant sur la ligne de relation dans la vue Modèle : le sens doit
+    aller de la dimension (<span class="mono">v_stocks</span>, <span class="mono">v_user_profiles</span>)
+    vers la table de faits, en cardinalité <b>Un vers plusieurs (1:*)</b>.</p>
+
+  <h3 class="section"><span class="n">4.3</span> Créer les relations manquantes — les dates</h3>
+  <p>Les colonnes de dates n'ont pas le même nom d'une table à l'autre, donc l'auto-détection les
+    ignore. Fais-les à la main : clique sur <span class="mono">date_jour</span> dans
+    <span class="mono">v_dim_date</span>, glisse-dépose vers la colonne correspondante de chaque table
+    de faits datée au jour :</p>
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Depuis</th><th>Vers</th><th>Cardinalité</th><th>Sens du filtre</th></tr>
+    <tr><td class="vname">v_dim_date[date_jour]</td><td class="vname">v_quotes_history[session_date]</td><td>1 : *</td><td>Unique →</td></tr>
+    <tr><td class="vname">v_dim_date[date_jour]</td><td class="vname">v_analyses_quota_daily[jour]</td><td>1 : *</td><td>Unique →</td></tr>
+    <tr><td class="vname">v_dim_date[date_jour]</td><td class="vname">v_abonnements[date_debut]</td><td>1 : *</td><td>Unique → (active)</td></tr>
+    <tr><td class="vname">v_dim_date[date_jour]</td><td class="vname">v_abonnements[date_fin]</td><td>1 : *</td><td>Unique → (inactive, voir 4.6)</td></tr>
+  </table>
+  </div>
+
+  <h3 class="section"><span class="n">4.4</span> Cardinalité et sens de filtrage : pourquoi "Unique"</h3>
+  <p>Pour chaque relation, laisse le <b>sens de filtrage croisé</b> sur <b>Unique</b> (la dimension
+    filtre la table de faits) plutôt que <b>Les deux</b> (bidirectionnel). Ici, deux dimensions
+    (<span class="mono">v_user_profiles</span>, <span class="mono">v_dim_date</span>) touchent
+    plusieurs tables de faits à la fois : en bidirectionnel, un filtre posé sur une page "Revenus"
+    pourrait se propager en silence jusqu'à des visuels de la page "Utilisateurs", et inversement — des
+    chiffres qui bougent sans qu'on comprenne pourquoi. En sens unique, chaque filtre reste prévisible.</p>
+  <div class="callout info">
+    <b>Règle simple pour débuter :</b> Unique par défaut, toujours. Tu passeras en bidirectionnel plus
+    tard, ponctuellement, seulement si un besoin précis l'exige et que tu comprends pourquoi.
+  </div>
+
+  <h3 class="section"><span class="n">4.5</span> Cas particulier : deux relations vers la même dimension</h3>
+  <p><span class="mono">v_abonnements</span> a deux colonnes de date (<span class="mono">date_debut</span>,
+    <span class="mono">date_fin</span>) qui pourraient toutes les deux se relier à
+    <span class="mono">v_dim_date</span>. Power BI n'autorise qu'une seule relation <b>active</b> à la
+    fois entre deux tables — la seconde se crée automatiquement en pointillé, <b>inactive</b> :</p>
+  <div class="schema-wrap">
+    <svg viewBox="0 0 460 130" width="100%" style="max-width:460px; display:block;">
+      <rect x="15" y="45" width="140" height="40" rx="8" fill="var(--teal-soft)" stroke="var(--teal)"></rect>
+      <text x="85" y="69" text-anchor="middle" font-size="12" fill="var(--teal-ink)">v_dim_date</text>
+
+      <rect x="300" y="45" width="150" height="40" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"></rect>
+      <text x="375" y="69" text-anchor="middle" font-size="12" fill="var(--accent-ink)">v_abonnements</text>
+
+      <line x1="155" y1="55" x2="300" y2="55" stroke="var(--teal)" stroke-width="2"></line>
+      <text x="228" y="45" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)" font-family="IBM Plex Mono">date_debut · active</text>
+
+      <line x1="155" y1="80" x2="300" y2="80" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="4,4"></line>
+      <text x="228" y="100" text-anchor="middle" font-size="10.5" fill="var(--ink-faint)" font-family="IBM Plex Mono">date_fin · inactive</text>
+    </svg>
+  </div>
+  <p>Laisse <span class="mono">date_debut</span> active (elle répond à "combien de nouveaux
+    abonnements par jour"). La relation inactive sur <span class="mono">date_fin</span> reste
+    disponible pour plus tard : on l'activera ponctuellement dans une mesure avec
+    <span class="mono">USERELATIONSHIP()</span> le jour où tu voudras analyser les résiliations par
+    date de fin (hors périmètre de ce chantier, mais bon à savoir que c'est possible sans dupliquer la
+    table).</p>
+
+  <h3 class="section"><span class="n">4.6</span> Pourquoi v_fundamentals ne se relie pas à v_dim_date</h3>
+  <p><span class="mono">v_fundamentals</span> est annuelle (<span class="mono">fiscal_year</span> est
+    un entier comme <span class="mono">2025</span>, pas une date calendaire précise). La relier à un
+    calendrier journalier n'aurait pas de sens — <span class="mono">fiscal_year</span> reste un simple
+    champ de filtre/segment autonome dans les visuels de la page Marché, sans relation dédiée.</p>
+
+  <h3 class="section"><span class="n">4.7</span> Une précision de vocabulaire : étoile ou galaxie ?</h3>
+  <p>Au sprint 1, on a appelé ce montage "schéma en étoile" pour simplifier. Maintenant que le modèle
+    est sous tes yeux : un schéma en étoile <i>au sens strict</i> n'a qu'<b>une seule</b> table de
+    faits entourée de ses dimensions. Ici, on a <b>quatre</b> tables de faits
+    (<span class="mono">v_quotes_history</span>, <span class="mono">v_fundamentals</span>,
+    <span class="mono">v_analyses_quota_daily</span>, <span class="mono">v_abonnements</span>) qui
+    partagent des dimensions communes (<span class="mono">v_dim_date</span>,
+    <span class="mono">v_stocks</span>, <span class="mono">v_user_profiles</span>) sans jamais se
+    relier entre elles directement. Le terme exact est <b>schéma en galaxie</b> (ou "constellation de
+    faits") — le principe de fond (dimensions séparées des faits) reste identique, seul le nom change
+    selon le nombre de tables de faits.</p>
+
+  <h3 class="section"><span class="n">4.8</span> Marquer v_dim_date comme table de dates</h3>
+  <ol>
+    <li>Clique sur la table <span class="mono">v_dim_date</span> dans la vue Modèle (ou Données)</li>
+    <li>Onglet contextuel <b>Outils de table</b> → <b>Marquer comme table de dates</b></li>
+    <li>Colonne de date : <span class="mono">date_jour</span> → Valider</li>
+  </ol>
+  <div class="callout">
+    <b>Pourquoi c'est obligatoire :</b> les fonctions de time intelligence DAX du sprint 5
+    (<span class="mono">SAMEPERIODLASTYEAR</span>, <span class="mono">DATESYTD</span>…) exigent une
+    table marquée comme table de dates, avec une colonne couvrant des dates uniques et continues — ce
+    que <span class="mono">v_dim_date</span> garantit par construction (2010-01-01 à 2031-12-31, un
+    jour par ligne, sans trou).
+  </div>
+
+  <h3 class="section"><span class="n">4.9</span> Organiser le modèle : une table dédiée aux mesures</h3>
+  <p>Avant d'écrire des mesures DAX, crée un endroit propre pour les ranger plutôt que de les éparpiller
+    sur les 7 tables de données :</p>
+  <ol>
+    <li><b>Accueil → Entrer des données</b></li>
+    <li>Laisse le tableau vide, nomme-le <span class="mono">_Mesures</span> (le tiret bas la fait
+      remonter en haut de la liste des tables) → <b>Charger</b></li>
+  </ol>
+  <p>C'est dans cette table que vivront toutes tes mesures — jamais de colonne de données dedans,
+    uniquement des mesures.</p>
+
+  <h3 class="section"><span class="n">4.10</span> Tes trois premières mesures</h3>
+
+  <details class="glossary">
+    <summary><span class="ico"></span>Notion — DAX, c'est quoi au juste ?<span class="tag">DAX</span></summary>
+    <div class="body">
+      <p><b>DAX</b> (<span class="mono">Data Analysis eXpressions</span>) est le langage de formules
+        de Power BI — le même esprit qu'une formule Excel, mais conçu pour raisonner sur des tables
+        entières plutôt que sur des cellules isolées.</p>
+      <p><b>Utilité.</b> DAX sert à créer deux choses : des <b>colonnes calculées</b> (vues au sprint 3 —
+        une valeur ajoutée à chaque ligne d'une table, figée au chargement) et des <b>mesures</b>
+        (ci-dessous — un calcul qui se refait à la volée selon ce que l'utilisateur regarde). La quasi
+        totalité du travail DAX porte sur les mesures, car ce sont elles qui rendent un dashboard
+        interactif.</p>
+      <p><b>Contexte.</b> Le mot-clé le plus important de DAX est <span class="mono">CALCULATE</span> :
+        il permet de changer le contexte de filtre d'un calcul (par exemple, comparer le volume du
+        titre sélectionné contre celui de <i>tout</i> le marché, dans la même visualisation). Le
+        sprint 5 lui est entièrement consacré.</p>
+    </div>
+  </details>
+
+  <p>Clic droit sur <span class="mono">_Mesures</span> → <b>Nouvelle mesure</b> :</p>
+  <pre class="codebox">Nombre de titres actifs = <span class="c">CALCULATE</span>(
+    <span class="c">DISTINCTCOUNT</span>(v_stocks[ticker]),
+    v_stocks[is_active] = <span class="c">TRUE</span>()
+)
+
+Volume total = <span class="c">SUM</span>(v_quotes_history[volume])
+
+Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</pre>
+  <p>Différence à retenir avec une colonne calculée (sprint 3) : une <b>mesure</b> ne se calcule pas
+    ligne par ligne au chargement, elle se recalcule à la volée selon le <i>contexte de filtre</i> du
+    visuel qui l'affiche (le titre sélectionné, la période du segment…). C'est ce qui la rend réutilisable
+    partout dans le dashboard sans jamais dupliquer de donnée.</p>
+
+  <h3 class="section"><span class="n">4.11</span> À faire avant le sprint 5</h3>
+  <ul class="checklist">
+    <li><input type="checkbox" id="c4-1" onchange="__brvmToggleChecklist(this)"><label for="c4-1">Les 4 relations auto-détectées (4.2) sont vérifiées en 1:*, sens Unique</label></li>
+    <li><input type="checkbox" id="c4-2" onchange="__brvmToggleChecklist(this)"><label for="c4-2">Les 4 relations de dates (4.3) sont créées manuellement</label></li>
+    <li><input type="checkbox" id="c4-3" onchange="__brvmToggleChecklist(this)"><label for="c4-3">date_debut est active, date_fin est inactive sur v_abonnements</label></li>
+    <li><input type="checkbox" id="c4-4" onchange="__brvmToggleChecklist(this)"><label for="c4-4">v_dim_date est marquée comme table de dates</label></li>
+    <li><input type="checkbox" id="c4-5" onchange="__brvmToggleChecklist(this)"><label for="c4-5">La table _Mesures existe avec les 3 premières mesures</label></li>
+  </ul>
+
+  <div class="footfoot">
+    <span>Sprint 4 / 7 — modélisation</span>
+    <span>Prochain : <b style="color:var(--ink)">Sprint 5 — DAX avancé</b></span>
+  </div>
+
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SPRINT 5 — contenu complet                                    -->
+<!-- ============================================================ -->
+<div class="panel" id="panel-5">
+<div class="card stack">
+
+  <div class="sprint-head">
+    <span class="tag">Sprint 5</span>
+    <h2>DAX avancé</h2>
+  </div>
+  <p class="lede">Objectif : écrire des mesures qui comparent des périodes entre elles (année sur
+    année, cumul depuis le début de l'année), et des ratios sûrs qui ne cassent jamais sur une
+    division par zéro. C'est le sprint où DAX cesse d'être décoratif et devient réellement utile.</p>
+
+  <h3 class="section"><span class="n">5.1</span> Ce que change CALCULATE</h3>
+  <p>Toutes les mesures du sprint 4 (<span class="mono">Volume total</span>,
+    <span class="mono">Nombre de titres actifs</span>…) héritent silencieusement du
+    <b>contexte de filtre</b> posé par le visuel qui les affiche : un tableau par titre les recalcule
+    ticker par ticker, un segment de date les recalcule période par période. <span class="mono">CALCULATE</span>
+    est la seule fonction DAX qui peut <b>modifier</b> ce contexte plutôt que le subir — c'est elle qui
+    rend possible tout ce qui suit : comparer une période à une autre exige de désobéir, dans un coin
+    de la formule, au filtre que le visuel a posé.</p>
+
+  <h3 class="section"><span class="n">5.2</span> Time intelligence : cumul depuis le début de l'année</h3>
+  <p>Ces fonctions exigent que <span class="mono">v_dim_date</span> soit marquée comme table de dates
+    (fait au sprint 4) — sans ça, elles renvoient une erreur ou un résultat silencieusement faux.</p>
+  <pre class="codebox">Volume YTD =
+<span class="c">CALCULATE</span>(
+    [Volume total],
+    <span class="c">DATESYTD</span>(v_dim_date[date_jour])
+)</pre>
+  <p>Posée dans un visuel par mois, cette mesure ne montre pas le volume du mois seul, mais le cumul
+    depuis le 1er janvier jusqu'à ce mois — <span class="mono">DATESYTD</span> remplace le filtre de
+    date du visuel par la plage "du 1er janvier de l'année en cours jusqu'à la date affichée".</p>
+
+  <h3 class="section"><span class="n">5.3</span> Comparer une année à l'autre</h3>
+  <pre class="codebox">Volume N-1 (même période) =
+<span class="c">CALCULATE</span>(
+    [Volume total],
+    <span class="c">SAMEPERIODLASTYEAR</span>(v_dim_date[date_jour])
+)
+
+Évolution volume vs N-1 (%) =
+<span class="c">DIVIDE</span>(
+    [Volume total] - [Volume N-1 (même période)],
+    [Volume N-1 (même période)]
+)</pre>
+  <div class="callout info">
+    <b>Pourquoi DIVIDE et pas l'opérateur /</b> — si le titre n'avait aucune transaction l'année
+    précédente, <span class="mono">[Volume N-1]</span> vaut 0 ou vide, et <span class="mono">/</span>
+    renverrait une erreur qui casserait tout le visuel. <span class="mono">DIVIDE(numérateur,
+    dénominateur)</span> renvoie un blanc proprement dans ce cas — troisième argument optionnel pour
+    une valeur de repli si tu en veux une précise (ex. 0).
+  </div>
+
+  <h3 class="section"><span class="n">5.4</span> Cumul glissant (running total)</h3>
+  <p>Même principe que le YTD, mais sans repartir de zéro chaque 1er janvier — utile pour
+    <span class="mono">v_abonnements</span> où on veut voir le total encaissé progresser sans jamais
+    redescendre :</p>
+  <pre class="codebox">Cumul abonnements (FCFA) =
+<span class="c">CALCULATE</span>(
+    [Total abonnements (FCFA)],
+    <span class="c">FILTER</span>(
+        <span class="c">ALLSELECTED</span>(v_dim_date),
+        v_dim_date[date_jour] &lt;= <span class="c">MAX</span>(v_dim_date[date_jour])
+    )
+)</pre>
+  <p><span class="mono">ALLSELECTED(v_dim_date)</span> retire temporairement le filtre de date posé
+    par le visuel (sans toucher aux autres filtres, par ex. un segment sur le plan tarifaire), puis
+    <span class="mono">FILTER</span> ne garde que les dates antérieures ou égales à la date de la
+    ligne courante — chaque ligne du visuel additionne donc tout ce qui la précède.</p>
+
+  <h3 class="section"><span class="n">5.5</span> Un ratio bancaire, proprement</h3>
+  <p><span class="mono">v_fundamentals</span> contient <span class="mono">credit_xof</span> et
+    <span class="mono">depot_xof</span>, nuls pour les sociétés non bancaires (sprint 2). Une mesure
+    de ratio doit rester silencieuse sur ces lignes plutôt que d'afficher une erreur :</p>
+  <pre class="codebox">Ratio Crédits/Dépôts =
+<span class="c">DIVIDE</span>(
+    <span class="c">SUM</span>(v_fundamentals[credit_xof]),
+    <span class="c">SUM</span>(v_fundamentals[depot_xof])
+)</pre>
+  <p>Posée dans un tableau mêlant banques et non-banques, cette mesure affiche un ratio pour les
+    premières et une cellule vide pour les secondes — exactement le comportement voulu, sans
+    <span class="mono">IF</span> ni test de nullité écrit à la main.</p>
+
+  <h3 class="section"><span class="n">5.6</span> Mettre le pourcentage en forme correctement</h3>
+  <p>DAX ne fait pas la distinction entre "0,145" et "14,5 %" — c'est un nombre décimal, point.
+    Une fois la mesure <span class="mono">Évolution volume vs N-1 (%)</span> créée :</p>
+  <ol>
+    <li>Sélectionne la mesure dans le volet Données</li>
+    <li>Onglet contextuel <b>Outils de mesure</b> → format <b>%</b>, 1 décimale</li>
+  </ol>
+  <div class="callout">
+    <b>Piège à éviter :</b> ne jamais multiplier la formule par 100 pour "faire apparaître" le
+    pourcentage — la valeur stockée doit rester le ratio brut (0,145), seule sa <i>mise en forme
+    d'affichage</i> change. Multiplier par 100 fausserait tout calcul ultérieur qui réutilise cette
+    mesure (moyenne, écart, tri).
+  </div>
+
+  <h3 class="section"><span class="n">5.7</span> À faire avant le sprint 6</h3>
+  <ul class="checklist">
+    <li><input type="checkbox" id="c5-1" onchange="__brvmToggleChecklist(this)"><label for="c5-1">Volume YTD créée et testée sur un visuel par mois</label></li>
+    <li><input type="checkbox" id="c5-2" onchange="__brvmToggleChecklist(this)"><label for="c5-2">Volume N-1 (même période) et Évolution vs N-1 (%) créées</label></li>
+    <li><input type="checkbox" id="c5-3" onchange="__brvmToggleChecklist(this)"><label for="c5-3">La mesure d'évolution est formatée en % (pas de ×100 dans la formule)</label></li>
+    <li><input type="checkbox" id="c5-4" onchange="__brvmToggleChecklist(this)"><label for="c5-4">Cumul abonnements créé et vérifié (courbe qui ne redescend jamais)</label></li>
+    <li><input type="checkbox" id="c5-5" onchange="__brvmToggleChecklist(this)"><label for="c5-5">Ratio Crédits/Dépôts créé avec DIVIDE, vide sur les non-banques</label></li>
+  </ul>
+
+  <div class="footfoot">
+    <span>Sprint 5 / 7 — DAX avancé</span>
+    <span>Prochain : <b style="color:var(--ink)">Sprint 6 — Présentation</b></span>
+  </div>
+
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SPRINT 6 — contenu complet                                    -->
+<!-- ============================================================ -->
+<div class="panel" id="panel-6">
+<div class="card stack">
+
+  <div class="sprint-head">
+    <span class="tag">Sprint 6</span>
+    <h2>Présentation</h2>
+  </div>
+  <p class="lede">Objectif : transformer les mesures des sprints 4-5 en un dashboard qu'on peut
+    réellement lire — 3 pages organisées par axe, les bons visuels pour les bonnes questions, et des
+    segments qui filtrent proprement. Le thème visuel et les finitions viennent au sprint 7.</p>
+
+  <h3 class="section"><span class="n">6.1</span> Une page par axe, pas un fourre-tout</h3>
+  <p>Avec 4 tables de faits et 3 dimensions, tout mettre sur une seule page produirait un mur de
+    visuels sans hiérarchie de lecture. Crée 3 pages (clic droit sur l'onglet de page en bas →
+    Renommer) :</p>
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Page</th><th>Question à laquelle elle répond</th><th>Tables mobilisées</th></tr>
+    <tr><td class="vname">Marché</td><td>Comment se comportent les titres cotés ?</td><td>v_stocks, v_quotes_history, v_fundamentals</td></tr>
+    <tr><td class="vname">Usage</td><td>Comment la plateforme est-elle utilisée ?</td><td>v_user_profiles, v_analyses_quota_daily</td></tr>
+    <tr><td class="vname">Revenus</td><td>Combien rapportent les abonnements, et comment ça évolue ?</td><td>v_abonnements</td></tr>
+  </table>
+  </div>
+  <p><span class="mono">v_dim_date</span> n'a pas sa propre page : elle alimente les segments de date
+    présents sur les trois.</p>
+
+  <h3 class="section"><span class="n">6.2</span> Choisir le visuel selon la question, pas selon le goût</h3>
+  <div class="tblwrap">
+  <table class="views">
+    <tr><th>Question posée</th><th>Visuel Power BI</th><th>Exemple avec nos mesures</th></tr>
+    <tr><td>Un seul chiffre clé, tout de suite</td><td class="vname">Carte</td><td>Nombre de titres actifs</td></tr>
+    <tr><td>Un chiffre qui évolue dans le temps</td><td class="vname">Courbe</td><td>Volume total par jour</td></tr>
+    <tr><td>Comparer des catégories entre elles</td><td class="vname">Graphique à colonnes groupées</td><td>Volume par ticker</td></tr>
+    <tr><td>Une part d'un tout, peu de catégories</td><td class="vname">Anneau</td><td>Répartition des abonnements par plan</td></tr>
+    <tr><td>Le détail ligne par ligne, pour vérifier</td><td class="vname">Table / Matrice</td><td>Historique des cours d'un titre</td></tr>
+  </table>
+  </div>
+  <div class="callout info">
+    <b>Piège fréquent chez les débutants :</b> la jauge et le graphique en secteurs (camembert) sont
+    visuellement flatteurs mais rarement les bons choix — la jauge n'a de sens qu'avec un objectif
+    explicite (ex. un quota), et le camembert devient illisible au-delà de 4-5 parts. Préfère la
+    carte pour un chiffre seul, l'anneau ou la colonne pour une répartition.
+  </div>
+
+  <h3 class="section"><span class="n">6.3</span> Page Marché — construction</h3>
+  <ol>
+    <li>Rangée de <b>cartes</b> en haut : Nombre de titres actifs, Volume total, Volume YTD</li>
+    <li><b>Courbe</b> : axe X = <span class="mono">v_dim_date[date_jour]</span>, valeur =
+      <span class="mono">v_quotes_history[close]</span>, légende = <span class="mono">v_stocks[ticker]</span></li>
+    <li><b>Table</b> : ticker, secteur, dernier cours, variation % — triée par variation décroissante</li>
+  </ol>
+
+  <h3 class="section"><span class="n">6.4</span> Page Usage — construction</h3>
+  <ol>
+    <li><b>Carte</b> : nombre d'analyses du jour (<span class="mono">SUM(v_analyses_quota_daily[nb_analyses])</span> — adapte au nom réel de la colonne de comptage dans ta requête)</li>
+    <li><b>Courbe</b> : analyses par jour sur <span class="mono">v_dim_date[date_jour]</span></li>
+    <li><b>Colonnes groupées</b> : répartition des profils par <span class="mono">v_user_profiles[type_investisseur]</span> si la colonne est incluse dans ta vue</li>
+  </ol>
+
+  <h3 class="section"><span class="n">6.5</span> Page Revenus — construction</h3>
+  <ol>
+    <li><b>Cartes</b> : Total abonnements (FCFA), Évolution volume vs N-1 (%) adaptée en "Évolution abonnements"</li>
+    <li><b>Courbe</b> : Cumul abonnements (FCFA) — la courbe ne doit jamais redescendre (sprint 5)</li>
+    <li><b>Anneau</b> : répartition par plan si <span class="mono">v_abonnements</span> expose une colonne de plan</li>
+  </ol>
+
+  <h3 class="section"><span class="n">6.6</span> Segments : filtrer sans dupliquer les pages</h3>
+  <p>Ajoute un <b>segment</b> (visuel "Segment") sur <span class="mono">v_dim_date[annee]</span> ou
+    une plage de dates, posé une fois sur chaque page. Pour qu'un choix de période reste cohérent en
+    changeant de page :</p>
+  <ol>
+    <li><b>Affichage → Synchroniser les segments</b></li>
+    <li>Sélectionne le segment de date → coche les 3 pages dans l'onglet Synchroniser</li>
+  </ol>
+  <p>Ajoute un second segment sur <span class="mono">v_stocks[ticker]</span>, celui-là uniquement sur
+    la page Marché (pas de sens ailleurs) — pas besoin de synchronisation.</p>
+
+  <h3 class="section"><span class="n">6.7</span> Filtres de page vs filtres de visuel</h3>
+  <p>Le volet <b>Filtres</b> à droite propose 3 niveaux : sur ce visuel, sur cette page, sur toutes
+    les pages. Réserve <b>Filtres sur cette page</b> à une exclusion durable (ex. retirer un ticker
+    radié de la cote sur la page Marché) — un filtre que l'utilisateur du dashboard n'a pas besoin de
+    changer. Pour tout ce qui doit rester manipulable à l'usage, un <b>segment</b> visible vaut mieux
+    qu'un filtre caché dans le volet : personne ne pense à ouvrir ce volet pour comprendre pourquoi
+    un chiffre semble incomplet.</p>
+
+  <h3 class="section"><span class="n">6.8</span> Alignement et grille</h3>
+  <p><b>Affichage → Aligner sur la grille</b> (et <b>Ancrer aux éléments</b>) avant de positionner le
+    moindre visuel — un dashboard où les cartes du haut ne sont pas alignées sur les bords des
+    graphiques du dessous se remarque instantanément, même par quelqu'un qui ne saurait pas dire
+    pourquoi. Garde une marge extérieure identique sur les 3 pages et un espacement constant entre
+    visuels.</p>
+
+  <h3 class="section"><span class="n">6.9</span> À faire avant le sprint 7</h3>
+  <ul class="checklist">
+    <li><input type="checkbox" id="c6-1" onchange="__brvmToggleChecklist(this)"><label for="c6-1">Les 3 pages (Marché, Usage, Revenus) existent et sont renommées</label></li>
+    <li><input type="checkbox" id="c6-2" onchange="__brvmToggleChecklist(this)"><label for="c6-2">Chaque page a ses cartes KPI + au moins un visuel temporel + un visuel de détail</label></li>
+    <li><input type="checkbox" id="c6-3" onchange="__brvmToggleChecklist(this)"><label for="c6-3">Le segment de date est synchronisé sur les 3 pages</label></li>
+    <li><input type="checkbox" id="c6-4" onchange="__brvmToggleChecklist(this)"><label for="c6-4">Le segment de ticker n'existe que sur la page Marché</label></li>
+    <li><input type="checkbox" id="c6-5" onchange="__brvmToggleChecklist(this)"><label for="c6-5">Les visuels sont alignés sur une grille cohérente d'une page à l'autre</label></li>
+  </ul>
+
+  <div class="footfoot">
+    <span>Sprint 6 / 7 — présentation</span>
+    <span>Prochain : <b style="color:var(--ink)">Sprint 7 — Finalisation</b></span>
+  </div>
+
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SPRINT 7 — contenu complet                                    -->
+<!-- ============================================================ -->
+<div class="panel" id="panel-7">
+<div class="card stack">
+
+  <div class="sprint-head">
+    <span class="tag">Sprint 7</span>
+    <h2>Finalisation</h2>
+  </div>
+  <p class="lede">Dernier sprint : un thème visuel cohérent, des visuels qui interagissent
+    intelligemment, des infobulles utiles, une vérification de performance, puis la publication.
+    Après ça, ton dashboard d'entraînement est terminé.</p>
+
+  <h3 class="section"><span class="n">7.1</span> Un thème visuel, pas des couleurs par défaut</h3>
+  <ol>
+    <li><b>Affichage → Thèmes → Personnaliser le thème actuel</b></li>
+    <li>Onglet <b>Couleurs</b> : choisis une couleur d'accent (les 12 couleurs de la palette
+      découlent d'elle) — par exemple un bleu sobre pour la page Marché, cohérent avec l'univers
+      financier plutôt qu'une palette arc-en-ciel par défaut</li>
+    <li>Onglet <b>Texte</b> : une seule police pour tout le rapport (celle de Power BI par défaut,
+      Segoe UI, est un choix parfaitement raisonnable — l'important est qu'elle soit unique)</li>
+  </ol>
+  <div class="callout info">
+    <b>Pourquoi ça compte plus qu'il n'y paraît :</b> un thème appliqué une fois se répercute sur les
+    3 pages automatiquement. C'est l'inverse d'un travail visuel fait visuel par visuel, qui devient
+    impossible à maintenir cohérent dès qu'on ajoute une page.
+  </div>
+
+  <h3 class="section"><span class="n">7.2</span> Mise en forme conditionnelle sur les tableaux</h3>
+  <p>Sur la table de la page Marché (sprint 6), la colonne de variation % gagne à être lue d'un
+    coup d'œil plutôt que chiffre par chiffre :</p>
+  <ol>
+    <li>Sélectionne le visuel Table → colonne <span class="mono">change_pct</span></li>
+    <li><b>Mise en forme conditionnelle → Barres de données</b> (ou <b>Échelle de couleurs</b>)</li>
+    <li>Couleur négative / positive cohérente avec l'intuition : rouge pour une baisse, vert pour
+      une hausse — l'inverse dérouterait n'importe quel lecteur habitué aux marchés financiers</li>
+  </ol>
+
+  <h3 class="section"><span class="n">7.3</span> Interactions entre visuels</h3>
+  <p>Par défaut, cliquer sur une colonne d'un graphique filtre tous les autres visuels de la page.
+    Ce n'est pas toujours souhaitable :</p>
+  <ol>
+    <li>Sélectionne un visuel (ex. la courbe des cours) → onglet <b>Format → Modifier les
+      interactions</b></li>
+    <li>Pour chaque autre visuel de la page, choisis : <b>Filtrer</b> (comportement par défaut),
+      <b>Surligner</b> (garde tout visible mais met en évidence la sélection — souvent préférable
+      sur un graphique de comparaison), ou <b>Aucune</b> (le visuel ignore la sélection — pour une
+      carte KPI qui doit rester une vue d'ensemble)</li>
+  </ol>
+  <div class="callout">
+    <b>Cas concret :</b> les cartes KPI en haut de chaque page (sprint 6) devraient presque toujours
+    être en <b>Aucune</b> — elles perdent leur utilité de "vue d'ensemble" si elles se recalculent
+    au moindre clic sur un visuel voisin.
+  </div>
+
+  <h3 class="section"><span class="n">7.4</span> Infobulles personnalisées</h3>
+  <p>Une infobulle par défaut ne montre que le champ survolé. Pour afficher 2-3 mesures de contexte
+    au survol d'un point de la courbe des cours :</p>
+  <ol>
+    <li>Nouvelle page → <b>Format de la page → Type de page → Info-bulle</b> (redimensionne-la en
+      petit format, ex. 320×240)</li>
+    <li>Dépose-y une carte ou deux (ex. Volume total, Évolution vs N-1) filtrées par le contexte
+      survolé</li>
+    <li>Retourne sur le visuel principal → <b>Format → Info-bulles → Type : Page de rapport</b> →
+      sélectionne cette page</li>
+  </ol>
+
+  <h3 class="section"><span class="n">7.5</span> Vérifier la performance avant de livrer</h3>
+  <p><b>Affichage → Analyseur de performances → Actualiser les visuels</b> : chaque visuel affiche
+    son temps de calcul DAX et de rendu. Un visuel qui dépasse largement les autres (souvent une
+    table avec trop de lignes, ou une mesure avec <span class="mono">DISTINCTCOUNT</span> sur une
+    grande table) mérite d'être simplifié — soit en réduisant les lignes affichées, soit en
+    déplaçant le calcul lourd dans une mesure dédiée plus simple.</p>
+
+  <h3 class="section"><span class="n">7.6</span> Publier</h3>
+  <ol>
+    <li><b>Accueil → Publier</b></li>
+    <li>Connecte-toi avec ton compte (une licence gratuite suffit pour publier dans <b>Mon espace de
+      travail</b> à usage personnel — pas besoin de Power BI Pro pour ce chantier d'entraînement)</li>
+    <li>Choisis <b>Mon espace de travail</b> comme destination</li>
+  </ol>
+  <p>Le rapport devient consultable depuis app.powerbi.com, avec les mêmes pages, segments et
+    interactions que dans Power BI Desktop.</p>
+
+  <h3 class="section"><span class="n">7.7</span> Checklist finale — les 7 sprints</h3>
+  <ul class="checklist">
+    <li><input type="checkbox" id="c7-1" onchange="__brvmToggleChecklist(this)"><label for="c7-1">Un thème visuel unique est appliqué aux 3 pages</label></li>
+    <li><input type="checkbox" id="c7-2" onchange="__brvmToggleChecklist(this)"><label for="c7-2">La mise en forme conditionnelle est posée sur au moins un tableau</label></li>
+    <li><input type="checkbox" id="c7-3" onchange="__brvmToggleChecklist(this)"><label for="c7-3">Les interactions des cartes KPI sont passées en "Aucune"</label></li>
+    <li><input type="checkbox" id="c7-4" onchange="__brvmToggleChecklist(this)"><label for="c7-4">Au moins une infobulle personnalisée est configurée</label></li>
+    <li><input type="checkbox" id="c7-5" onchange="__brvmToggleChecklist(this)"><label for="c7-5">L'Analyseur de performances a été exécuté, aucun visuel anormalement lent</label></li>
+    <li><input type="checkbox" id="c7-6" onchange="__brvmToggleChecklist(this)"><label for="c7-6">Le rapport est publié dans Mon espace de travail</label></li>
+  </ul>
+
+  <h3 class="section"><span class="n">7.8</span> Pour aller plus loin</h3>
+  <p>Ce chantier a volontairement limité le modèle à 7 des 13 vues disponibles dans le schéma
+    <span class="mono">reporting</span> (sprint 1). La méthode reste identique pour ajouter les
+    6 restantes (<span class="mono">v_analyst_forecasts</span>, <span class="mono">v_evenements_titres</span>,
+    <span class="mono">v_analytics_events</span>, <span class="mono">v_blog_page_views</span>,
+    <span class="mono">v_academie_acces</span>, <span class="mono">v_portfolio_transactions</span>) :
+    Power Query → nettoyer → transformer → relier → mesurer → présenter. Deux pistes naturelles pour
+    une prochaine itération, non couvertes ici : la <b>sécurité au niveau des lignes</b> (RLS, utile
+    si ce rapport devait un jour être partagé avec plusieurs personnes voyant chacune des données
+    différentes) et les <b>signets</b> (bookmarks, pour construire une navigation entre plusieurs
+    vues d'une même page). Le tien est fini — la prochaine étape, comme tu le disais au départ, est
+    de construire le vrai à partir de cette méthode.</p>
+
+  <div class="footfoot">
+    <span>Sprint 7 / 7 — finalisation</span>
+    <span><b style="color:var(--teal-ink)">Chantier terminé</b></span>
+  </div>
+
+</div>
+</div>
+
+    </div>
+  </div>
+</div>
+
+</body></html>
