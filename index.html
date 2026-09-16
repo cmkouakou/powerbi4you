@@ -12,7 +12,7 @@
     --accent:#B5842A; --accent-ink:#7A5A12; --accent-soft:#F3E7CC;
     --teal:#1F7A66; --teal-soft:#DFEFEA; --teal-ink:#14503F;
     --code-bg:#12181F; --code-ink:#DCE3EA; --code-accent:#E8BE55;
-    --focus:#3D6FD1;
+    --focus:#3D6FD1; --focus-soft:#E4ECFB; --focus-ink:#2A4E96;
     --shadow: 0 1px 2px rgba(20,26,33,.06), 0 8px 24px -12px rgba(20,26,33,.18);
   }
   @media (prefers-color-scheme: dark){
@@ -23,6 +23,7 @@
       --accent:#E3B658; --accent-ink:#F4D488; --accent-soft:#3A2F14;
       --teal:#4FB39B; --teal-soft:#15332C; --teal-ink:#8FDBC7;
       --code-bg:#0B0F13; --code-ink:#DCE3EA; --code-accent:#E8BE55;
+      --focus:#6F97E8; --focus-soft:#1C2B45; --focus-ink:#AFC6F5;
       --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px -12px rgba(0,0,0,.55);
     }
   }
@@ -33,6 +34,7 @@
     --accent:#E3B658; --accent-ink:#F4D488; --accent-soft:#3A2F14;
     --teal:#4FB39B; --teal-soft:#15332C; --teal-ink:#8FDBC7;
     --code-bg:#0B0F13; --code-ink:#DCE3EA; --code-accent:#E8BE55;
+    --focus:#6F97E8; --focus-soft:#1C2B45; --focus-ink:#AFC6F5;
     --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px -12px rgba(0,0,0,.55);
   }
 
@@ -122,9 +124,25 @@
 
   h3.section{
     font-size:16px; margin-top:6px; padding-top:18px; border-top:1px solid var(--border);
-    display:flex; align-items:center; gap:8px;
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
   }
   h3.section .n{font-family:"IBM Plex Mono"; font-size:12px; color:var(--ink-faint); font-weight:400;}
+
+  /* ===== charte graphique : pratique / info / repère ===== */
+  .step-tag{
+    font-family:"IBM Plex Mono"; font-size:10px; font-weight:600; letter-spacing:.05em;
+    text-transform:uppercase; padding:2px 8px; border-radius:100px; white-space:nowrap;
+    margin-left:auto;
+  }
+  .step-tag.action{background:var(--accent-soft); color:var(--accent-ink);}
+  .step-tag.info{background:var(--focus-soft); color:var(--focus-ink);}
+  .step-tag.recap{background:var(--teal-soft); color:var(--teal-ink);}
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:14px; font-size:12px; color:var(--ink-soft);
+  }
+  .legend .item{display:inline-flex; align-items:center; gap:7px;}
+  .legend .step-tag{margin-left:0;}
 
   p{margin:10px 0 0;}
   ul, ol{margin:10px 0 0; padding-left:1.3em;}
@@ -257,6 +275,13 @@
     display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
     margin-top:22px; padding-top:16px; border-top:1px solid var(--border); font-size:13px; color:var(--ink-faint);
   }
+  .footfoot-nav{
+    border:0; background:transparent; padding:6px 4px; margin:-6px -4px; font:inherit; color:inherit;
+    cursor:pointer; border-radius:6px;
+  }
+  .footfoot-nav:hover{background:var(--accent-soft); color:var(--accent-ink);}
+  .footfoot-nav b{color:var(--ink);}
+  .footfoot-nav:hover b{color:var(--accent-ink);}
 
   /* locked/coming soon panels */
   .soon{border:1px dashed var(--border-strong); border-radius:14px; padding:26px 24px; background:var(--surface);}
@@ -296,6 +321,11 @@
       <h1>Chantier BRVM Power BI</h1>
       <p class="sub">Guide d'entraînement, sprint par sprint : de la connexion déjà en place jusqu'à un
         dashboard complet — nettoyage, transformation, modélisation, présentation.</p>
+      <div class="legend">
+        <span class="item"><span class="step-tag action">Pratique</span> à faire dans Power BI, maintenant</span>
+        <span class="item"><span class="step-tag info">Info</span> contexte / explication, rien à cliquer</span>
+        <span class="item"><span class="step-tag recap">Repère</span> checklist de fin de sprint</span>
+      </div>
     </div>
     <div class="progress-chip">
       <svg class="progress-ring" viewBox="0 0 36 36" id="ring">
@@ -417,7 +447,10 @@
     state.lastSprint = id;
     applyStateToUI();
     persist();
+    var panel = document.getElementById('panel-'+id);
+    if(panel) panel.scrollIntoView({block:'start', behavior:'smooth'});
   }
+  window.__brvmActivate = activate;
 
   function markDone(){
     var n = SPRINTS.filter(function(s){ return state.done[s.id]; }).length;
@@ -494,7 +527,7 @@
     pourquoi, puis faire entrer les bonnes tables dans Power BI. On ne nettoie rien encore — ça, c'est
     le sprint 2.</p>
 
-  <h3 class="section"><span class="n">1.1</span> Le dashboard qu'on construit</h3>
+  <h3 class="section"><span class="n">1.1</span> Le dashboard qu'on construit <span class="step-tag info">Info</span></h3>
   <p>Pour que chaque sprint ait un but concret, on vise un dashboard à 3 pages, un par axe de données
     disponible dans le schéma <code>reporting</code> :</p>
   <div class="board">
@@ -526,7 +559,7 @@
   <p style="font-size:13px; color:var(--ink-faint)">On affinera ces listes en sprint 6 — pour l'instant
     elles servent juste à choisir les bonnes tables.</p>
 
-  <h3 class="section"><span class="n">1.2</span> Comment Power BI s'organise en entreprise</h3>
+  <h3 class="section"><span class="n">1.2</span> Comment Power BI s'organise en entreprise <span class="step-tag info">Info</span></h3>
   <p>Avant d'ouvrir Power BI Desktop, une clarification qui évite un contresens fréquent chez les
     étudiants : on ne reçoit jamais un identifiant unique et on "commence à travailler" comme sur un
     tableur personnel. Dans une vraie entreprise, l'accès aux données est <b>découpé en couches</b>,
@@ -610,7 +643,7 @@
     </div>
   </details>
 
-  <h3 class="section"><span class="n">1.3</span> Panorama des 13 vues disponibles</h3>
+  <h3 class="section"><span class="n">1.3</span> Panorama des 13 vues disponibles <span class="step-tag info">Info</span></h3>
   <p>Le rôle <code>powerbi_reader</code> voit exactement 13 vues dans le schéma <code>reporting</code>,
     déjà nettoyées de toute donnée personnelle (voir migration <code>072_reporting_powerbi.sql</code>).
     Chacune est soit une <span class="role dim">dimension</span> (elle décrit un objet — un titre, un
@@ -680,7 +713,7 @@
   </div>
   </div>
 
-  <h3 class="section"><span class="n">1.4</span> Les 7 vues retenues pour ce chantier</h3>
+  <h3 class="section"><span class="n">1.4</span> Les 7 vues retenues pour ce chantier <span class="step-tag info">Info</span></h3>
   <p>13 vues d'un coup, c'est trop pour apprendre proprement. On en choisit <b>7</b> — assez pour
     construire un vrai schéma en étoile sur les 3 axes, sans se noyer :</p>
   <div class="tblwrap">
@@ -701,7 +734,7 @@
     <span class="mono">v_portfolio_transactions</span>) restent disponibles — tu pourras les ajouter
     toi-même une fois les sprints terminés, en répétant exactement la même méthode.</p>
 
-  <h3 class="section"><span class="n">1.5</span> Pourquoi ce schéma tient debout</h3>
+  <h3 class="section"><span class="n">1.5</span> Pourquoi ce schéma tient debout <span class="step-tag info">Info</span></h3>
   <p>Les 3 dimensions rayonnent vers les 4 tables de faits — c'est la forme "en étoile" qu'on
     construira formellement au sprint 4, mais autant voir la cible dès maintenant :</p>
 
@@ -767,7 +800,7 @@
     </svg>
   </div>
 
-  <h3 class="section"><span class="n">1.6</span> Premier chargement dans Power BI Desktop</h3>
+  <h3 class="section"><span class="n">1.6</span> Premier chargement dans Power BI Desktop <span class="step-tag action">Pratique</span></h3>
   <p>La connexion PostgreSQL est déjà configurée avec le rôle <code>powerbi_reader</code> — on part
     directement du navigateur de sources :</p>
   <ol>
@@ -819,7 +852,7 @@
     </div>
   </details>
 
-  <h3 class="section"><span class="n">1.7</span> Repérer l'éditeur Power Query</h3>
+  <h3 class="section"><span class="n">1.7</span> Repérer l'éditeur Power Query <span class="step-tag action">Pratique</span></h3>
   <p>Voici ce que tu dois voir à l'écran une fois dans l'éditeur — utile pour t'y retrouver au sprint 2 :</p>
   <div class="pq-mock">
     <div class="pq-ribbon">
@@ -862,7 +895,7 @@
     <div class="pq-fx"><b>fx</b> = Table.NavigateToNavigationTable(...) — la barre de formule, où chaque étape s'écrit en langage M</div>
   </div>
 
-  <h3 class="section"><span class="n">1.8</span> À faire avant le sprint 2</h3>
+  <h3 class="section"><span class="n">1.8</span> À faire avant le sprint 2 <span class="step-tag recap">Repère</span></h3>
   <ul class="checklist">
     <li><input type="checkbox" id="c1-1" onchange="__brvmToggleChecklist(this)"><label for="c1-1">Les 7 vues sont visibles dans le volet Requêtes de Power Query</label></li>
     <li><input type="checkbox" id="c1-2" onchange="__brvmToggleChecklist(this)"><label for="c1-2">Le mode <span class="mono">Import</span> a bien été choisi (pas DirectQuery)</label></li>
@@ -872,7 +905,7 @@
 
   <div class="footfoot">
     <span>Sprint 1 / 7 — vue d'ensemble &amp; premier chargement</span>
-    <span>Prochain : <b style="color:var(--ink)">Sprint 2 — Nettoyage des données</b></span>
+    <span><button type="button" class="footfoot-nav" onclick="__brvmActivate(2)">Prochain : <b>Sprint 2 — Nettoyage des données</b> →</button></span>
   </div>
 
 </div>
@@ -892,7 +925,7 @@
     connaissance de cause, aucun doublon, et des noms de colonnes lisibles — avant de passer à la
     transformation (sprint 3) et au modèle (sprint 4).</p>
 
-  <h3 class="section"><span class="n">2.1</span> Le principe : une recette, pas un bricolage</h3>
+  <h3 class="section"><span class="n">2.1</span> Le principe : une recette, pas un bricolage <span class="step-tag info">Info</span></h3>
   <p>Chaque action que tu fais dans l'éditeur Power Query — changer un type, renommer une colonne,
     filtrer une ligne — s'ajoute comme une <b>étape</b> dans le volet <span class="mono">Étapes
     appliquées</span> (repéré au sprint 1). Deux conséquences importantes :</p>
@@ -907,7 +940,7 @@
     données à ce stade précis — pratique pour comprendre ce qu'une étape a changé.
   </div>
 
-  <h3 class="section"><span class="n">2.2</span> Corriger les types de données</h3>
+  <h3 class="section"><span class="n">2.2</span> Corriger les types de données <span class="step-tag action">Pratique</span></h3>
   <p>Power Query devine les types automatiquement à l'import, mais il se trompe souvent sur les dates
     et sur les montants. Sélectionne la colonne → onglet <b>Accueil</b> → <b>Type de données</b> (ou
     clique sur l'icône de type dans l'en-tête de colonne).</p>
@@ -1064,7 +1097,7 @@
   <p style="font-size:12.5px; color:var(--ink-faint)">Ce que Power Query écrit tout seul en langage M
     quand tu changes des types depuis le ruban — visible dans la barre de formule (fx).</p>
 
-  <h3 class="section"><span class="n">2.3</span> Valeurs nulles : ne pas nettoyer à l'aveugle</h3>
+  <h3 class="section"><span class="n">2.3</span> Valeurs nulles : ne pas nettoyer à l'aveugle <span class="step-tag action">Pratique</span></h3>
   <p>Sur ce jeu de données, un <span class="mono">null</span> n'est pas toujours une erreur — c'est
     parfois l'information elle-même. Deux cas très différents à traiter différemment :</p>
   <ul>
@@ -1090,7 +1123,12 @@
     lignes vides</b>, ou un clic droit sur l'en-tête de colonne → <b>Supprimer les lignes vides</b>
     ciblé sur la colonne clé.</p>
 
-  <h3 class="section"><span class="n">2.4</span> Éliminer les doublons — sur la bonne clé</h3>
+  <h3 class="section"><span class="n">2.4</span> Éliminer les doublons — sur la bonne clé <span class="step-tag action">Pratique</span></h3>
+  <div class="callout">
+    <b>À exécuter, pas juste à lire :</b> applique <b>Supprimer les doublons</b> sur chacune des 4 vues
+    ci-dessous, dans ta requête réelle — ce n'est pas une simple information de référence. La checklist
+    de fin de sprint (2.7) part du principe que cette étape a été faite.
+  </div>
   <p>Clic droit sur l'en-tête de colonne → <b>Supprimer les doublons</b>, ou sélectionne plusieurs
     colonnes avant de faire l'opération. Le piège : Power Query déduplique sur <i>les colonnes que tu as
     sélectionnées</i>, pas sur la ligne entière si tu n'en sélectionnes qu'une ou deux.</p>
@@ -1104,22 +1142,22 @@
   </table>
   </div>
   <p style="font-size:13px; color:var(--ink-faint)">v_abonnements, v_user_profiles et v_dim_date sont
-    déjà à une ligne par clé naturelle dans leur définition — un contrôle rapide (tri + inspection
-    visuelle) suffit, pas besoin de déduplication systématique.</p>
+    déjà à une ligne par clé naturelle dans leur définition — pour celles-là, un contrôle rapide (tri +
+    inspection visuelle) suffit, purement informatif : pas besoin d'exécuter de suppression dessus.</p>
 
-  <h3 class="section"><span class="n">2.5</span> Renommer pour la lisibilité — en dernier</h3>
+  <h3 class="section"><span class="n">2.5</span> Renommer pour la lisibilité — en dernier <span class="step-tag action">Pratique</span></h3>
   <p>Double-clic sur l'en-tête de colonne (ou clic droit → <b>Renommer</b>) pour donner des noms clairs,
     qui apparaîtront tels quels dans les visuels du dashboard. Quelques renommages utiles pour la suite :</p>
   <div class="tblwrap">
   <table class="views">
-    <tr><th>Nom technique</th><th>Nom d'affichage</th></tr>
-    <tr><td class="vname">close</td><td>Cours de clôture</td></tr>
-    <tr><td class="vname">change_pct</td><td>Variation (%)</td></tr>
-    <tr><td class="vname">valeur_transigee</td><td>Valeur transigée (FCFA)</td></tr>
-    <tr><td class="vname">bna</td><td>BNA (FCFA)</td></tr>
-    <tr><td class="vname">dpa</td><td>DPA (FCFA)</td></tr>
-    <tr><td class="vname">montant</td><td>Montant abonnement (FCFA)</td></tr>
-    <tr><td class="vname">jour</td><td>Date analyse</td></tr>
+    <tr><th>Nom technique</th><th>Nom d'affichage</th><th>Vue</th></tr>
+    <tr><td class="vname">close</td><td>Cours de clôture</td><td>v_quotes_history</td></tr>
+    <tr><td class="vname">change_pct</td><td>Variation (%)</td><td>v_quotes_history</td></tr>
+    <tr><td class="vname">valeur_transigee</td><td>Valeur transigée (FCFA)</td><td>v_quotes_history</td></tr>
+    <tr><td class="vname">bna</td><td>BNA (FCFA)</td><td>v_fundamentals</td></tr>
+    <tr><td class="vname">dpa</td><td>DPA (FCFA)</td><td>v_fundamentals</td></tr>
+    <tr><td class="vname">montant</td><td>Montant abonnement (FCFA)</td><td>v_abonnements</td></tr>
+    <tr><td class="vname">jour</td><td>Date analyse</td><td>v_analyses_quota_daily</td></tr>
   </table>
   </div>
   <div class="callout info">
@@ -1129,7 +1167,10 @@
     encore l'ancien nom.
   </div>
 
-  <h3 class="section"><span class="n">2.6</span> L'ordre conseillé, de bout en bout</h3>
+  <h3 class="section"><span class="n">2.6</span> L'ordre conseillé, de bout en bout <span class="step-tag info">Info</span></h3>
+  <p style="font-size:13px; color:var(--ink-faint)">Ce n'est pas un nouvel ordre : c'est exactement
+    celui que tu viens de suivre section par section (2.2 → 2.3 → 2.4 → 2.5) — ce récapitulatif sert
+    juste à le voir d'un seul coup d'œil, comme il apparaîtra dans le volet Étapes appliquées.</p>
   <ol>
     <li>Types de données corrigés (2.2)</li>
     <li>Lignes vraiment inutilisables supprimées — clé de jointure nulle (2.3)</li>
@@ -1154,7 +1195,7 @@
     </div>
   </div>
 
-  <h3 class="section"><span class="n">2.7</span> À faire avant le sprint 3</h3>
+  <h3 class="section"><span class="n">2.7</span> À faire avant le sprint 3 <span class="step-tag recap">Repère</span></h3>
   <ul class="checklist">
     <li><input type="checkbox" id="c2-1" onchange="__brvmToggleChecklist(this)"><label for="c2-1">Les types de données des 7 tables correspondent aux tableaux de 2.2, colonne par colonne (vérifie l'icône de type dans chaque en-tête)</label></li>
     <li><input type="checkbox" id="c2-2" onchange="__brvmToggleChecklist(this)"><label for="c2-2">Tu sais dire, pour chaque table, quels nulls sont légitimes et lesquels ne le sont pas</label></li>
@@ -1163,8 +1204,9 @@
   </ul>
 
   <div class="footfoot">
+    <span><button type="button" class="footfoot-nav" onclick="__brvmActivate(1)">← Précédent : <b>Sprint 1</b></button></span>
     <span>Sprint 2 / 7 — nettoyage des données</span>
-    <span>Prochain : <b style="color:var(--ink)">Sprint 3 — Transformation</b></span>
+    <span><button type="button" class="footfoot-nav" onclick="__brvmActivate(3)">Prochain : <b>Sprint 3 — Transformation</b> →</button></span>
   </div>
 
 </div>
@@ -1184,7 +1226,7 @@
     quand aller chercher une information dans une autre table par fusion — et surtout, savoir quand
     <b>ne pas</b> le faire, parce qu'une relation (sprint 4) fera mieux le travail.</p>
 
-  <h3 class="section"><span class="n">3.1</span> Trois façons d'ajouter une colonne</h3>
+  <h3 class="section"><span class="n">3.1</span> Trois façons d'ajouter une colonne <span class="step-tag info">Info</span></h3>
   <div class="tblwrap">
   <table class="views">
     <tr><th>Type</th><th>Où</th><th>Pour</th></tr>
@@ -1194,7 +1236,7 @@
   </table>
   </div>
 
-  <h3 class="section"><span class="n">3.2</span> Colonne personnalisée — rendre un montant lisible</h3>
+  <h3 class="section"><span class="n">3.2</span> Colonne personnalisée — rendre un montant lisible <span class="step-tag action">Pratique</span></h3>
   <p>Sur <span class="mono">v_quotes_history</span>, les valeurs transigées sont en FCFA bruts (parfois
     plusieurs centaines de millions) — illisibles sur l'axe d'un graphique. On ajoute une colonne en
     millions :</p>
@@ -1212,7 +1254,7 @@
     correctement dans le modèle.
   </div>
 
-  <h3 class="section"><span class="n">3.3</span> Colonne conditionnelle — réutiliser ce qu'on a compris des nulls</h3>
+  <h3 class="section"><span class="n">3.3</span> Colonne conditionnelle — réutiliser ce qu'on a compris des nulls <span class="step-tag action">Pratique</span></h3>
   <p>Au sprint 2 (2.3), on a vu qu'un <span class="mono">pnb_xof</span> nul dans
     <span class="mono">v_fundamentals</span> signifie "ce n'est pas une banque". On transforme cette
     observation en colonne exploitable pour filtrer/comparer plus tard :</p>
@@ -1225,6 +1267,7 @@
   <p>Même logique pour segmenter les volumes de <span class="mono">v_quotes_history</span> — une
     colonne conditionnelle à seuils, utile pour un futur visuel :</p>
   <ol>
+    <li>Nom de sortie : <span class="mono">Segment de volume</span></li>
     <li>Si <span class="mono">volume</span> &lt; 1 000 Alors <span class="mono">"Faible"</span></li>
     <li>Sinon si <span class="mono">volume</span> &lt; 10 000 Alors <span class="mono">"Moyen"</span></li>
     <li>Sinon <span class="mono">"Élevé"</span></li>
@@ -1233,7 +1276,7 @@
     elle-même l'ordre des clauses (elle génère un <span class="mono">if … then … else if …</span> en M)
     — pas besoin d'écrire la formule à la main pour celle-ci.</p>
 
-  <h3 class="section"><span class="n">3.4</span> Fusion de requêtes — aller chercher une info ailleurs</h3>
+  <h3 class="section"><span class="n">3.4</span> Fusion de requêtes — aller chercher une info ailleurs <span class="step-tag action">Pratique</span></h3>
   <p>Avant de fusionner quoi que ce soit, <b>duplique la requête</b> que tu veux tester : clic droit sur
     <span class="mono">v_quotes_history</span> dans le volet Requêtes → <b>Dupliquer</b>. Renomme la
     copie <span class="mono">Sandbox fusion</span>. Tu expérimentes dessus, jamais sur la vraie table —
@@ -1265,7 +1308,7 @@
     Ajoute enfin une colonne personnalisée <span class="mono">Capitalisation boursière (FCFA)</span> =
     <span class="mono">[Cours de clôture] * [shares_outstanding]</span>.</p>
 
-  <h3 class="section"><span class="n">3.5</span> Fusion ou relation ? La question à se poser à chaque fois</h3>
+  <h3 class="section"><span class="n">3.5</span> Fusion ou relation ? La question à se poser à chaque fois <span class="step-tag info">Info</span></h3>
   <p>Tu viens de fusionner deux tables pour obtenir une capitalisation boursière. Au sprint 4, tu vas
     créer une <b>relation</b> entre les mêmes deux tables. Les deux se ressemblent — elles ne servent pas
     au même besoin :</p>
@@ -1293,14 +1336,14 @@
     polluer le modèle final.
   </div>
 
-  <h3 class="section"><span class="n">3.6</span> v_dim_date : rien à transformer, et c'est voulu</h3>
+  <h3 class="section"><span class="n">3.6</span> v_dim_date : rien à transformer, et c'est voulu <span class="step-tag info">Info</span></h3>
   <p>Résiste à la tentation d'ajouter une colonne "Année" séparée sur chaque table de faits en la
     recalculant depuis <span class="mono">session_date</span> ou <span class="mono">jour</span> — c'est
     exactement le doublon que <span class="mono">v_dim_date</span> existe pour éviter. Vérifie juste
     que le type de <span class="mono">date_jour</span> est bien <span class="mono">Date</span> (fait au
     sprint 2) : la table est prête à être reliée telle quelle au sprint 4.</p>
 
-  <h3 class="section"><span class="n">3.7</span> À faire avant le sprint 4</h3>
+  <h3 class="section"><span class="n">3.7</span> À faire avant le sprint 4 <span class="step-tag recap">Repère</span></h3>
   <ul class="checklist">
     <li><input type="checkbox" id="c3-1" onchange="__brvmToggleChecklist(this)"><label for="c3-1"><span class="mono">Valeur transigée (M FCFA)</span> existe sur v_quotes_history, en type Nombre</label></li>
     <li><input type="checkbox" id="c3-2" onchange="__brvmToggleChecklist(this)"><label for="c3-2"><span class="mono">Type de société</span> (Banque/Non-bancaire) existe sur v_fundamentals</label></li>
@@ -1310,8 +1353,9 @@
   </ul>
 
   <div class="footfoot">
+    <span><button type="button" class="footfoot-nav" onclick="__brvmActivate(2)">← Précédent : <b>Sprint 2</b></button></span>
     <span>Sprint 3 / 7 — transformation</span>
-    <span>Prochain : <b style="color:var(--ink)">Sprint 4 — Modélisation</b></span>
+    <span><button type="button" class="footfoot-nav" onclick="__brvmActivate(4)">Prochain : <b>Sprint 4 — Modélisation</b> →</button></span>
   </div>
 
 </div>
@@ -1331,7 +1375,7 @@
     pièges classiques de cardinalité, marquer la table de dates, et écrire tes trois premières mesures
     DAX. C'est le sprint le plus dense — prends ton temps.</p>
 
-  <h3 class="section"><span class="n">4.1</span> Passer de Power Query au modèle</h3>
+  <h3 class="section"><span class="n">4.1</span> Passer de Power Query au modèle <span class="step-tag action">Pratique</span></h3>
   <p><b>Accueil → Fermer et appliquer.</b> Les 7 requêtes se chargent réellement dans le modèle pour la
     première fois (jusqu'ici tu ne travaillais que sur un aperçu). Ça peut prendre quelques dizaines de
     secondes — <span class="mono">v_dim_date</span> à elle seule contient plus de 8 000 lignes
@@ -1339,7 +1383,7 @@
   <p>Une fois chargé, passe dans la <b>vue Modèle</b> (icône en forme de schéma de tables, dans le
     rail vertical à gauche de l'écran — sous les icônes Rapport et Données).</p>
 
-  <h3 class="section"><span class="n">4.2</span> Vérifier les relations déjà auto-détectées</h3>
+  <h3 class="section"><span class="n">4.2</span> Vérifier les relations déjà auto-détectées <span class="step-tag action">Pratique</span></h3>
   <p>Power BI tente de deviner des relations à partir de colonnes de même nom. Il a probablement déjà
     créé, sans que tu n'aies rien fait :</p>
   <ul>
@@ -1352,7 +1396,7 @@
     aller de la dimension (<span class="mono">v_stocks</span>, <span class="mono">v_user_profiles</span>)
     vers la table de faits, en cardinalité <b>Un vers plusieurs (1:*)</b>.</p>
 
-  <h3 class="section"><span class="n">4.3</span> Créer les relations manquantes — les dates</h3>
+  <h3 class="section"><span class="n">4.3</span> Créer les relations manquantes — les dates <span class="step-tag action">Pratique</span></h3>
   <p>Les colonnes de dates n'ont pas le même nom d'une table à l'autre, donc l'auto-détection les
     ignore. Fais-les à la main : clique sur <span class="mono">date_jour</span> dans
     <span class="mono">v_dim_date</span>, glisse-dépose vers la colonne correspondante de chaque table
@@ -1367,7 +1411,7 @@
   </table>
   </div>
 
-  <h3 class="section"><span class="n">4.4</span> Cardinalité et sens de filtrage : pourquoi "Unique"</h3>
+  <h3 class="section"><span class="n">4.4</span> Cardinalité et sens de filtrage : pourquoi "Unique" <span class="step-tag info">Info</span></h3>
   <p>Pour chaque relation, laisse le <b>sens de filtrage croisé</b> sur <b>Unique</b> (la dimension
     filtre la table de faits) plutôt que <b>Les deux</b> (bidirectionnel). Ici, deux dimensions
     (<span class="mono">v_user_profiles</span>, <span class="mono">v_dim_date</span>) touchent
@@ -1379,7 +1423,7 @@
     tard, ponctuellement, seulement si un besoin précis l'exige et que tu comprends pourquoi.
   </div>
 
-  <h3 class="section"><span class="n">4.5</span> Cas particulier : deux relations vers la même dimension</h3>
+  <h3 class="section"><span class="n">4.5</span> Cas particulier : deux relations vers la même dimension <span class="step-tag info">Info</span></h3>
   <p><span class="mono">v_abonnements</span> a deux colonnes de date (<span class="mono">date_debut</span>,
     <span class="mono">date_fin</span>) qui pourraient toutes les deux se relier à
     <span class="mono">v_dim_date</span>. Power BI n'autorise qu'une seule relation <b>active</b> à la
@@ -1406,13 +1450,13 @@
     date de fin (hors périmètre de ce chantier, mais bon à savoir que c'est possible sans dupliquer la
     table).</p>
 
-  <h3 class="section"><span class="n">4.6</span> Pourquoi v_fundamentals ne se relie pas à v_dim_date</h3>
+  <h3 class="section"><span class="n">4.6</span> Pourquoi v_fundamentals ne se relie pas à v_dim_date <span class="step-tag info">Info</span></h3>
   <p><span class="mono">v_fundamentals</span> est annuelle (<span class="mono">fiscal_year</span> est
     un entier comme <span class="mono">2025</span>, pas une date calendaire précise). La relier à un
     calendrier journalier n'aurait pas de sens — <span class="mono">fiscal_year</span> reste un simple
     champ de filtre/segment autonome dans les visuels de la page Marché, sans relation dédiée.</p>
 
-  <h3 class="section"><span class="n">4.7</span> Une précision de vocabulaire : étoile ou galaxie ?</h3>
+  <h3 class="section"><span class="n">4.7</span> Une précision de vocabulaire : étoile ou galaxie ? <span class="step-tag info">Info</span></h3>
   <p>Au sprint 1, on a appelé ce montage "schéma en étoile" pour simplifier. Maintenant que le modèle
     est sous tes yeux : un schéma en étoile <i>au sens strict</i> n'a qu'<b>une seule</b> table de
     faits entourée de ses dimensions. Ici, on a <b>quatre</b> tables de faits
@@ -1424,7 +1468,7 @@
     faits") — le principe de fond (dimensions séparées des faits) reste identique, seul le nom change
     selon le nombre de tables de faits.</p>
 
-  <h3 class="section"><span class="n">4.8</span> Marquer v_dim_date comme table de dates</h3>
+  <h3 class="section"><span class="n">4.8</span> Marquer v_dim_date comme table de dates <span class="step-tag action">Pratique</span></h3>
   <ol>
     <li>Clique sur la table <span class="mono">v_dim_date</span> dans la vue Modèle (ou Données)</li>
     <li>Onglet contextuel <b>Outils de table</b> → <b>Marquer comme table de dates</b></li>
@@ -1438,7 +1482,7 @@
     jour par ligne, sans trou).
   </div>
 
-  <h3 class="section"><span class="n">4.9</span> Organiser le modèle : une table dédiée aux mesures</h3>
+  <h3 class="section"><span class="n">4.9</span> Organiser le modèle : une table dédiée aux mesures <span class="step-tag action">Pratique</span></h3>
   <p>Avant d'écrire des mesures DAX, crée un endroit propre pour les ranger plutôt que de les éparpiller
     sur les 7 tables de données :</p>
   <ol>
@@ -1449,7 +1493,7 @@
   <p>C'est dans cette table que vivront toutes tes mesures — jamais de colonne de données dedans,
     uniquement des mesures.</p>
 
-  <h3 class="section"><span class="n">4.10</span> Tes trois premières mesures</h3>
+  <h3 class="section"><span class="n">4.10</span> Tes trois premières mesures <span class="step-tag action">Pratique</span></h3>
 
   <details class="glossary">
     <summary><span class="ico"></span>Notion — DAX, c'est quoi au juste ?<span class="tag">DAX</span></summary>
@@ -1483,7 +1527,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     visuel qui l'affiche (le titre sélectionné, la période du segment…). C'est ce qui la rend réutilisable
     partout dans le dashboard sans jamais dupliquer de donnée.</p>
 
-  <h3 class="section"><span class="n">4.11</span> À faire avant le sprint 5</h3>
+  <h3 class="section"><span class="n">4.11</span> À faire avant le sprint 5 <span class="step-tag recap">Repère</span></h3>
   <ul class="checklist">
     <li><input type="checkbox" id="c4-1" onchange="__brvmToggleChecklist(this)"><label for="c4-1">Les 4 relations auto-détectées (4.2) sont vérifiées en 1:*, sens Unique</label></li>
     <li><input type="checkbox" id="c4-2" onchange="__brvmToggleChecklist(this)"><label for="c4-2">Les 4 relations de dates (4.3) sont créées manuellement</label></li>
@@ -1493,8 +1537,9 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
   </ul>
 
   <div class="footfoot">
+    <span><button type="button" class="footfoot-nav" onclick="__brvmActivate(3)">← Précédent : <b>Sprint 3</b></button></span>
     <span>Sprint 4 / 7 — modélisation</span>
-    <span>Prochain : <b style="color:var(--ink)">Sprint 5 — DAX avancé</b></span>
+    <span><button type="button" class="footfoot-nav" onclick="__brvmActivate(5)">Prochain : <b>Sprint 5 — DAX avancé</b> →</button></span>
   </div>
 
 </div>
@@ -1514,7 +1559,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     année, cumul depuis le début de l'année), et des ratios sûrs qui ne cassent jamais sur une
     division par zéro. C'est le sprint où DAX cesse d'être décoratif et devient réellement utile.</p>
 
-  <h3 class="section"><span class="n">5.1</span> Ce que change CALCULATE</h3>
+  <h3 class="section"><span class="n">5.1</span> Ce que change CALCULATE <span class="step-tag info">Info</span></h3>
   <p>Toutes les mesures du sprint 4 (<span class="mono">Volume total</span>,
     <span class="mono">Nombre de titres actifs</span>…) héritent silencieusement du
     <b>contexte de filtre</b> posé par le visuel qui les affiche : un tableau par titre les recalcule
@@ -1523,7 +1568,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     rend possible tout ce qui suit : comparer une période à une autre exige de désobéir, dans un coin
     de la formule, au filtre que le visuel a posé.</p>
 
-  <h3 class="section"><span class="n">5.2</span> Time intelligence : cumul depuis le début de l'année</h3>
+  <h3 class="section"><span class="n">5.2</span> Time intelligence : cumul depuis le début de l'année <span class="step-tag action">Pratique</span></h3>
   <p>Ces fonctions exigent que <span class="mono">v_dim_date</span> soit marquée comme table de dates
     (fait au sprint 4) — sans ça, elles renvoient une erreur ou un résultat silencieusement faux.</p>
   <pre class="codebox">Volume YTD =
@@ -1535,7 +1580,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     depuis le 1er janvier jusqu'à ce mois — <span class="mono">DATESYTD</span> remplace le filtre de
     date du visuel par la plage "du 1er janvier de l'année en cours jusqu'à la date affichée".</p>
 
-  <h3 class="section"><span class="n">5.3</span> Comparer une année à l'autre</h3>
+  <h3 class="section"><span class="n">5.3</span> Comparer une année à l'autre <span class="step-tag action">Pratique</span></h3>
   <pre class="codebox">Volume N-1 (même période) =
 <span class="c">CALCULATE</span>(
     [Volume total],
@@ -1555,7 +1600,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     une valeur de repli si tu en veux une précise (ex. 0).
   </div>
 
-  <h3 class="section"><span class="n">5.4</span> Cumul glissant (running total)</h3>
+  <h3 class="section"><span class="n">5.4</span> Cumul glissant (running total) <span class="step-tag action">Pratique</span></h3>
   <p>Même principe que le YTD, mais sans repartir de zéro chaque 1er janvier — utile pour
     <span class="mono">v_abonnements</span> où on veut voir le total encaissé progresser sans jamais
     redescendre :</p>
@@ -1572,7 +1617,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     <span class="mono">FILTER</span> ne garde que les dates antérieures ou égales à la date de la
     ligne courante — chaque ligne du visuel additionne donc tout ce qui la précède.</p>
 
-  <h3 class="section"><span class="n">5.5</span> Un ratio bancaire, proprement</h3>
+  <h3 class="section"><span class="n">5.5</span> Un ratio bancaire, proprement <span class="step-tag action">Pratique</span></h3>
   <p><span class="mono">v_fundamentals</span> contient <span class="mono">credit_xof</span> et
     <span class="mono">depot_xof</span>, nuls pour les sociétés non bancaires (sprint 2). Une mesure
     de ratio doit rester silencieuse sur ces lignes plutôt que d'afficher une erreur :</p>
@@ -1585,7 +1630,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     premières et une cellule vide pour les secondes — exactement le comportement voulu, sans
     <span class="mono">IF</span> ni test de nullité écrit à la main.</p>
 
-  <h3 class="section"><span class="n">5.6</span> Mettre le pourcentage en forme correctement</h3>
+  <h3 class="section"><span class="n">5.6</span> Mettre le pourcentage en forme correctement <span class="step-tag action">Pratique</span></h3>
   <p>DAX ne fait pas la distinction entre "0,145" et "14,5 %" — c'est un nombre décimal, point.
     Une fois la mesure <span class="mono">Évolution volume vs N-1 (%)</span> créée :</p>
   <ol>
@@ -1599,7 +1644,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     mesure (moyenne, écart, tri).
   </div>
 
-  <h3 class="section"><span class="n">5.7</span> À faire avant le sprint 6</h3>
+  <h3 class="section"><span class="n">5.7</span> À faire avant le sprint 6 <span class="step-tag recap">Repère</span></h3>
   <ul class="checklist">
     <li><input type="checkbox" id="c5-1" onchange="__brvmToggleChecklist(this)"><label for="c5-1">Volume YTD créée et testée sur un visuel par mois</label></li>
     <li><input type="checkbox" id="c5-2" onchange="__brvmToggleChecklist(this)"><label for="c5-2">Volume N-1 (même période) et Évolution vs N-1 (%) créées</label></li>
@@ -1609,8 +1654,9 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
   </ul>
 
   <div class="footfoot">
+    <span><button type="button" class="footfoot-nav" onclick="__brvmActivate(4)">← Précédent : <b>Sprint 4</b></button></span>
     <span>Sprint 5 / 7 — DAX avancé</span>
-    <span>Prochain : <b style="color:var(--ink)">Sprint 6 — Présentation</b></span>
+    <span><button type="button" class="footfoot-nav" onclick="__brvmActivate(6)">Prochain : <b>Sprint 6 — Présentation</b> →</button></span>
   </div>
 
 </div>
@@ -1630,7 +1676,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     réellement lire — 3 pages organisées par axe, les bons visuels pour les bonnes questions, et des
     segments qui filtrent proprement. Le thème visuel et les finitions viennent au sprint 7.</p>
 
-  <h3 class="section"><span class="n">6.1</span> Une page par axe, pas un fourre-tout</h3>
+  <h3 class="section"><span class="n">6.1</span> Une page par axe, pas un fourre-tout <span class="step-tag action">Pratique</span></h3>
   <p>Avec 4 tables de faits et 3 dimensions, tout mettre sur une seule page produirait un mur de
     visuels sans hiérarchie de lecture. Crée 3 pages (clic droit sur l'onglet de page en bas →
     Renommer) :</p>
@@ -1645,7 +1691,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
   <p><span class="mono">v_dim_date</span> n'a pas sa propre page : elle alimente les segments de date
     présents sur les trois.</p>
 
-  <h3 class="section"><span class="n">6.2</span> Choisir le visuel selon la question, pas selon le goût</h3>
+  <h3 class="section"><span class="n">6.2</span> Choisir le visuel selon la question, pas selon le goût <span class="step-tag info">Info</span></h3>
   <div class="tblwrap">
   <table class="views">
     <tr><th>Question posée</th><th>Visuel Power BI</th><th>Exemple avec nos mesures</th></tr>
@@ -1663,7 +1709,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     carte pour un chiffre seul, l'anneau ou la colonne pour une répartition.
   </div>
 
-  <h3 class="section"><span class="n">6.3</span> Page Marché — construction</h3>
+  <h3 class="section"><span class="n">6.3</span> Page Marché — construction <span class="step-tag action">Pratique</span></h3>
   <ol>
     <li>Rangée de <b>cartes</b> en haut : Nombre de titres actifs, Volume total, Volume YTD</li>
     <li><b>Courbe</b> : axe X = <span class="mono">v_dim_date[date_jour]</span>, valeur =
@@ -1671,21 +1717,21 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     <li><b>Table</b> : ticker, secteur, dernier cours, variation % — triée par variation décroissante</li>
   </ol>
 
-  <h3 class="section"><span class="n">6.4</span> Page Usage — construction</h3>
+  <h3 class="section"><span class="n">6.4</span> Page Usage — construction <span class="step-tag action">Pratique</span></h3>
   <ol>
     <li><b>Carte</b> : nombre d'analyses du jour (<span class="mono">SUM(v_analyses_quota_daily[nb_analyses])</span> — adapte au nom réel de la colonne de comptage dans ta requête)</li>
     <li><b>Courbe</b> : analyses par jour sur <span class="mono">v_dim_date[date_jour]</span></li>
     <li><b>Colonnes groupées</b> : répartition des profils par <span class="mono">v_user_profiles[type_investisseur]</span> si la colonne est incluse dans ta vue</li>
   </ol>
 
-  <h3 class="section"><span class="n">6.5</span> Page Revenus — construction</h3>
+  <h3 class="section"><span class="n">6.5</span> Page Revenus — construction <span class="step-tag action">Pratique</span></h3>
   <ol>
     <li><b>Cartes</b> : Total abonnements (FCFA), Évolution volume vs N-1 (%) adaptée en "Évolution abonnements"</li>
     <li><b>Courbe</b> : Cumul abonnements (FCFA) — la courbe ne doit jamais redescendre (sprint 5)</li>
     <li><b>Anneau</b> : répartition par plan si <span class="mono">v_abonnements</span> expose une colonne de plan</li>
   </ol>
 
-  <h3 class="section"><span class="n">6.6</span> Segments : filtrer sans dupliquer les pages</h3>
+  <h3 class="section"><span class="n">6.6</span> Segments : filtrer sans dupliquer les pages <span class="step-tag action">Pratique</span></h3>
   <p>Ajoute un <b>segment</b> (visuel "Segment") sur <span class="mono">v_dim_date[annee]</span> ou
     une plage de dates, posé une fois sur chaque page. Pour qu'un choix de période reste cohérent en
     changeant de page :</p>
@@ -1696,7 +1742,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
   <p>Ajoute un second segment sur <span class="mono">v_stocks[ticker]</span>, celui-là uniquement sur
     la page Marché (pas de sens ailleurs) — pas besoin de synchronisation.</p>
 
-  <h3 class="section"><span class="n">6.7</span> Filtres de page vs filtres de visuel</h3>
+  <h3 class="section"><span class="n">6.7</span> Filtres de page vs filtres de visuel <span class="step-tag info">Info</span></h3>
   <p>Le volet <b>Filtres</b> à droite propose 3 niveaux : sur ce visuel, sur cette page, sur toutes
     les pages. Réserve <b>Filtres sur cette page</b> à une exclusion durable (ex. retirer un ticker
     radié de la cote sur la page Marché) — un filtre que l'utilisateur du dashboard n'a pas besoin de
@@ -1704,14 +1750,14 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     qu'un filtre caché dans le volet : personne ne pense à ouvrir ce volet pour comprendre pourquoi
     un chiffre semble incomplet.</p>
 
-  <h3 class="section"><span class="n">6.8</span> Alignement et grille</h3>
+  <h3 class="section"><span class="n">6.8</span> Alignement et grille <span class="step-tag action">Pratique</span></h3>
   <p><b>Affichage → Aligner sur la grille</b> (et <b>Ancrer aux éléments</b>) avant de positionner le
     moindre visuel — un dashboard où les cartes du haut ne sont pas alignées sur les bords des
     graphiques du dessous se remarque instantanément, même par quelqu'un qui ne saurait pas dire
     pourquoi. Garde une marge extérieure identique sur les 3 pages et un espacement constant entre
     visuels.</p>
 
-  <h3 class="section"><span class="n">6.9</span> À faire avant le sprint 7</h3>
+  <h3 class="section"><span class="n">6.9</span> À faire avant le sprint 7 <span class="step-tag recap">Repère</span></h3>
   <ul class="checklist">
     <li><input type="checkbox" id="c6-1" onchange="__brvmToggleChecklist(this)"><label for="c6-1">Les 3 pages (Marché, Usage, Revenus) existent et sont renommées</label></li>
     <li><input type="checkbox" id="c6-2" onchange="__brvmToggleChecklist(this)"><label for="c6-2">Chaque page a ses cartes KPI + au moins un visuel temporel + un visuel de détail</label></li>
@@ -1721,8 +1767,9 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
   </ul>
 
   <div class="footfoot">
+    <span><button type="button" class="footfoot-nav" onclick="__brvmActivate(5)">← Précédent : <b>Sprint 5</b></button></span>
     <span>Sprint 6 / 7 — présentation</span>
-    <span>Prochain : <b style="color:var(--ink)">Sprint 7 — Finalisation</b></span>
+    <span><button type="button" class="footfoot-nav" onclick="__brvmActivate(7)">Prochain : <b>Sprint 7 — Finalisation</b> →</button></span>
   </div>
 
 </div>
@@ -1742,7 +1789,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     intelligemment, des infobulles utiles, une vérification de performance, puis la publication.
     Après ça, ton dashboard d'entraînement est terminé.</p>
 
-  <h3 class="section"><span class="n">7.1</span> Un thème visuel, pas des couleurs par défaut</h3>
+  <h3 class="section"><span class="n">7.1</span> Un thème visuel, pas des couleurs par défaut <span class="step-tag action">Pratique</span></h3>
   <ol>
     <li><b>Affichage → Thèmes → Personnaliser le thème actuel</b></li>
     <li>Onglet <b>Couleurs</b> : choisis une couleur d'accent (les 12 couleurs de la palette
@@ -1757,7 +1804,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     impossible à maintenir cohérent dès qu'on ajoute une page.
   </div>
 
-  <h3 class="section"><span class="n">7.2</span> Mise en forme conditionnelle sur les tableaux</h3>
+  <h3 class="section"><span class="n">7.2</span> Mise en forme conditionnelle sur les tableaux <span class="step-tag action">Pratique</span></h3>
   <p>Sur la table de la page Marché (sprint 6), la colonne de variation % gagne à être lue d'un
     coup d'œil plutôt que chiffre par chiffre :</p>
   <ol>
@@ -1767,7 +1814,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
       une hausse — l'inverse dérouterait n'importe quel lecteur habitué aux marchés financiers</li>
   </ol>
 
-  <h3 class="section"><span class="n">7.3</span> Interactions entre visuels</h3>
+  <h3 class="section"><span class="n">7.3</span> Interactions entre visuels <span class="step-tag action">Pratique</span></h3>
   <p>Par défaut, cliquer sur une colonne d'un graphique filtre tous les autres visuels de la page.
     Ce n'est pas toujours souhaitable :</p>
   <ol>
@@ -1784,7 +1831,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     au moindre clic sur un visuel voisin.
   </div>
 
-  <h3 class="section"><span class="n">7.4</span> Infobulles personnalisées</h3>
+  <h3 class="section"><span class="n">7.4</span> Infobulles personnalisées <span class="step-tag action">Pratique</span></h3>
   <p>Une infobulle par défaut ne montre que le champ survolé. Pour afficher 2-3 mesures de contexte
     au survol d'un point de la courbe des cours :</p>
   <ol>
@@ -1796,14 +1843,14 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
       sélectionne cette page</li>
   </ol>
 
-  <h3 class="section"><span class="n">7.5</span> Vérifier la performance avant de livrer</h3>
+  <h3 class="section"><span class="n">7.5</span> Vérifier la performance avant de livrer <span class="step-tag action">Pratique</span></h3>
   <p><b>Affichage → Analyseur de performances → Actualiser les visuels</b> : chaque visuel affiche
     son temps de calcul DAX et de rendu. Un visuel qui dépasse largement les autres (souvent une
     table avec trop de lignes, ou une mesure avec <span class="mono">DISTINCTCOUNT</span> sur une
     grande table) mérite d'être simplifié — soit en réduisant les lignes affichées, soit en
     déplaçant le calcul lourd dans une mesure dédiée plus simple.</p>
 
-  <h3 class="section"><span class="n">7.6</span> Publier</h3>
+  <h3 class="section"><span class="n">7.6</span> Publier <span class="step-tag action">Pratique</span></h3>
   <ol>
     <li><b>Accueil → Publier</b></li>
     <li>Connecte-toi avec ton compte (une licence gratuite suffit pour publier dans <b>Mon espace de
@@ -1813,7 +1860,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
   <p>Le rapport devient consultable depuis app.powerbi.com, avec les mêmes pages, segments et
     interactions que dans Power BI Desktop.</p>
 
-  <h3 class="section"><span class="n">7.7</span> Checklist finale — les 7 sprints</h3>
+  <h3 class="section"><span class="n">7.7</span> Checklist finale — les 7 sprints <span class="step-tag recap">Repère</span></h3>
   <ul class="checklist">
     <li><input type="checkbox" id="c7-1" onchange="__brvmToggleChecklist(this)"><label for="c7-1">Un thème visuel unique est appliqué aux 3 pages</label></li>
     <li><input type="checkbox" id="c7-2" onchange="__brvmToggleChecklist(this)"><label for="c7-2">La mise en forme conditionnelle est posée sur au moins un tableau</label></li>
@@ -1823,7 +1870,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     <li><input type="checkbox" id="c7-6" onchange="__brvmToggleChecklist(this)"><label for="c7-6">Le rapport est publié dans Mon espace de travail</label></li>
   </ul>
 
-  <h3 class="section"><span class="n">7.8</span> Pour aller plus loin</h3>
+  <h3 class="section"><span class="n">7.8</span> Pour aller plus loin <span class="step-tag info">Info</span></h3>
   <p>Ce chantier a volontairement limité le modèle à 7 des 13 vues disponibles dans le schéma
     <span class="mono">reporting</span> (sprint 1). La méthode reste identique pour ajouter les
     6 restantes (<span class="mono">v_analyst_forecasts</span>, <span class="mono">v_evenements_titres</span>,
@@ -1837,6 +1884,7 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
     de construire le vrai à partir de cette méthode.</p>
 
   <div class="footfoot">
+    <span><button type="button" class="footfoot-nav" onclick="__brvmActivate(6)">← Précédent : <b>Sprint 6</b></button></span>
     <span>Sprint 7 / 7 — finalisation</span>
     <span><b style="color:var(--teal-ink)">Chantier terminé</b></span>
   </div>

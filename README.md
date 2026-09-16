@@ -6,9 +6,12 @@ partir de vraies données boursières (schéma `reporting` de BRVM Analyser). Le
 en 7 sprints progressifs, avec des checklists à cocher pour suivre sa progression.
 
 ## 🚀 Fonctionnalités
-- 7 sprints : vue d'ensemble & chargement, nettoyage, transformation, modélisation, DAX avancé,
-  présentation, finalisation
-- Notions clés expliquées en encadrés rétractables (vue SQL, schéma en étoile, DAX)
+- 7 sprints entièrement rédigés : vue d'ensemble & chargement, nettoyage, transformation,
+  modélisation, DAX avancé, présentation, finalisation
+- Badges **Pratique** / **Info** / **Repère** sur chaque section, pour distinguer d'un coup d'œil
+  une manipulation à faire dans Power BI d'une explication ou d'une checklist de fin de sprint
+- Notions clés expliquées en encadrés rétractables (vue SQL, schéma en étoile, DAX, bonnes
+  pratiques de sauvegarde)
 - Checklists de progression par sprint, avec anneau de progression global
 - Progression sauvegardée automatiquement (voir *Notes importantes*)
 
@@ -38,6 +41,7 @@ powerbi4you/
 | Version | Date       | Changements          |
 |---------|------------|-----------------------|
 | 1.0     | 2026-09-15 | Import initial depuis l'Artifact Claude (7 sprints + fix persistance) |
+| 1.1     | 2026-09-15 | Contenu complet des sprints 2 à 4, badges Pratique/Info/Repère, section sur la sauvegarde/permanence du travail |
 
 ## 👤 Auteur
 Claude Marcel Kouakou
