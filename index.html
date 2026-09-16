@@ -788,6 +788,37 @@
     de préparer les données une bonne fois, avant qu'elles n'entrent dans le modèle.
   </div>
 
+  <div class="callout">
+    <b>⚠️ Enregistrer ≠ Fermer et appliquer.</b> <b>Fermer et appliquer</b> applique tes
+    transformations au modèle <i>en mémoire</i> — ça n'écrit rien sur le disque. Le seul geste qui
+    rend ton travail permanent, c'est <b>Ctrl+S</b> (ou Fichier > Enregistrer) sur le fichier
+    <code>.pbix</code>. Un redémarrage forcé (mise à jour Windows, coupure) entre les deux efface
+    tout le travail non enregistré, même si tu avais déjà cliqué sur "Fermer et appliquer".
+  </div>
+
+  <details class="glossary">
+    <summary><span class="ico"></span>Notion — Rendre son travail permanent et le reprendre sans tout refaire<span class="tag">Bonnes pratiques</span></summary>
+    <div class="body">
+      <p><b>Le réflexe à prendre</b> — <span class="mono">Ctrl+S</span> après chaque étape importante
+        de transformation (pas seulement en fin de sprint). Un projet Power BI long comme celui-ci
+        mérite d'être sauvegardé aussi souvent qu'un document Word.</p>
+      <p><b>La récupération automatique existe, mais n'y compte pas</b> — Power BI Desktop propose un
+        filet de sécurité (<span class="mono">Fichier > Options et paramètres > Options > Global >
+        Récupération automatique</span>), avec un intervalle réglable. Utile après un simple plantage
+        logiciel, mais pas garanti après un arrêt brutal du système (redémarrage forcé, coupure
+        électrique) — ce n'est pas un substitut à l'enregistrement manuel.</p>
+      <p><b>Garder des copies versionnées</b> — à chaque jalon important (fin de sprint, avant une
+        transformation risquée), enregistrer une copie datée du fichier (ex.
+        <span class="mono">chantier-brvm_sprint2_v1.pbix</span>). Si un fichier se corrompt ou qu'une
+        transformation casse tout, tu reviens à la dernière version saine au lieu de tout
+        recommencer.</p>
+      <p><b>Éviter les redémarrages forcés pendant une session de travail</b> — configurer les
+        <b>Heures d'activité</b> de Windows (<span class="mono">Paramètres > Windows Update > Heures
+        d'activité</span>) pour couvrir tes plages de travail habituelles. Windows évite alors de
+        redémarrer automatiquement pendant ces heures-là.</p>
+    </div>
+  </details>
+
   <h3 class="section"><span class="n">1.7</span> Repérer l'éditeur Power Query</h3>
   <p>Voici ce que tu dois voir à l'écran une fois dans l'éditeur — utile pour t'y retrouver au sprint 2 :</p>
   <div class="pq-mock">
