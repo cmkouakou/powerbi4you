@@ -223,12 +223,34 @@
   .pq-fx{padding:6px 10px; background:var(--surface); border-top:1px solid var(--border-strong); font-size:11.5px; color:var(--ink-faint); font-family:"IBM Plex Mono";}
   .pq-fx b{color:var(--ink-soft);}
 
+  figure.screenshot{
+    margin:14px 0 0; border:1px solid var(--border-strong); border-radius:10px; overflow:hidden;
+    background:var(--surface-2);
+  }
+  figure.screenshot img{display:block; width:100%; height:auto;}
+  figure.screenshot figcaption{
+    padding:8px 12px; font-size:11.5px; color:var(--ink-faint); border-top:1px solid var(--border);
+    background:var(--surface);
+  }
+
   .callout{
     border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:8px;
     padding:12px 14px; background:var(--accent-soft); font-size:13.5px; margin-top:14px;
   }
   .callout.info{border-left-color:var(--focus); background:var(--surface-2);}
   .callout b{color:var(--ink);}
+  /* ===== Référence au cours officiel Microsoft Learn ===== */
+  .msref{
+    font-size:12.5px; color:var(--ink-faint); margin-top:6px;
+    display:flex; gap:6px; align-items:baseline; flex-wrap:wrap;
+  }
+  .msref .ms{
+    font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.04em;
+    text-transform:uppercase; color:var(--ink-faint);
+    border:1px solid var(--border); border-radius:4px; padding:1px 6px; white-space:nowrap;
+  }
+  .msref a{text-decoration:none; border-bottom:1px solid var(--border);}
+  .msref a:hover{border-bottom-color:var(--focus);}
 
   /* ===== glossaire rétractable ===== */
   details.glossary{
@@ -801,25 +823,62 @@
   </div>
 
   <h3 class="section"><span class="n">1.6</span> Premier chargement dans Power BI Desktop <span class="step-tag action">Pratique</span></h3>
-  <p>La connexion PostgreSQL est déjà configurée avec le rôle <code>powerbi_reader</code> — on part
-    directement du navigateur de sources :</p>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/get-data/3-relational-data" target="_blank" rel="noopener">Get data from relational data sources</a><span>·</span><a href="https://learn.microsoft.com/fr-ca/training/modules/get-data/6-storage-mode" target="_blank" rel="noopener">Select a storage mode</a></p>
+  <p>Les identifiants du rôle <code>powerbi_reader</code> sont prêts à l'emploi — mais Power BI redemande
+    quand même la chaîne de connexion complète à la première ouverture d'un nouveau rapport :</p>
   <ol>
-    <li>Ouvre Power BI Desktop → onglet <b>Accueil</b> → <b>Obtenir les données</b> → reconnecte-toi à
-      ta base PostgreSQL avec les identifiants <code>powerbi_reader</code> déjà utilisés.</li>
+    <li>Ouvre Power BI Desktop → onglet <b>Accueil</b> → <b>Obtenir les données</b> → cherche et choisis
+      <b>PostgreSQL database</b>.</li>
+    <li>Une boîte <b>« Connect to data source »</b> s'ouvre en premier (pas encore le Navigateur) :
+      <ul>
+        <li><b>Server</b> : <code class="mono">aws-0-eu-west-1.pooler.supabase.com:5432</code></li>
+        <li><b>Database</b> : <code class="mono">postgres</code></li>
+        <li><b>Connectivity mode</b> : c'est <i>ici</i>, pas plus tard dans le Navigateur, que tu choisis
+          <b>Import</b> — pas <i>DirectQuery</i>. Le pooler Supabase n'est pas dimensionné pour des
+          requêtes répétées en direct depuis Power BI ; Import rapatrie les données une fois et les
+          stocke dans le fichier <code>.pbix</code>.</li>
+      </ul>
+    </li>
+    <li>Toujours dans la même boîte, sous <b>Connection credentials</b> : <b>Authentication kind</b> =
+      <code class="mono">Basic</code>, puis le <code>Username</code>/<code>Password</code> du rôle
+      <code>powerbi_reader</code>. Clique <b>OK</b> — le Navigateur s'ouvre alors.</li>
     <li>Dans le <b>Navigateur</b>, déplie uniquement le schéma <code>reporting</code> (jamais
-      <code>public</code> — le rôle n'y a de toute façon aucun accès).</li>
-    <li>Coche les <b>7 vues</b> listées en 1.4 (et elles seules, pour ce chantier).</li>
-    <li>En bas du Navigateur, choisis le mode <b>Import</b> — pas <i>DirectQuery</i>. Le pooler Supabase
-      n'est pas dimensionné pour des requêtes répétées en direct depuis Power BI ; Import rapatrie les
-      données une fois et les stocke dans le fichier <code>.pbix</code>.</li>
-    <li>Clique sur <b>Transformer les données</b> (pas <i>Charger</i>) — ça ouvre l'éditeur Power Query,
+      <code>public</code> — le rôle n'y a de toute façon aucun accès). Il liste une quinzaine
+      d'objets ; coche seulement les <b>7 vues</b> listées en 1.4 (et elles seules, pour ce chantier).</li>
+    <li>Clique sur <b>Transform data</b> (pas <i>Load</i>) — ça ouvre l'éditeur Power Query,
       où on travaillera aux sprints 2 et 3 avant de charger quoi que ce soit dans le modèle.</li>
   </ol>
   <div class="callout">
-    <b>Pourquoi "Transformer" et pas "Charger" ?</b> Une fois chargées telles quelles, corriger un type
+    <b>Pourquoi "Transform data" et pas "Load" ?</b> Une fois chargées telles quelles, corriger un type
     de colonne ou renommer un champ oblige à tout retélécharger. Passer par Power Query d'abord permet
     de préparer les données une bonne fois, avant qu'elles n'entrent dans le modèle.
   </div>
+  <div class="callout">
+    <b>Le mode Import ne se choisit qu'une fois.</b> Il est associé à la connexion, pas à chaque vue :
+    tu ne le reverras plus après cette étape, même en ajoutant d'autres tables plus tard depuis la même
+    source.
+  </div>
+
+  <details class="glossary">
+    <summary><span class="ico"></span>Dépannage — « too many connections for role powerbi_reader »<span class="tag">Dépannage</span></summary>
+    <div class="body">
+      <p><b>Ce qui se passe</b> — au clic sur <b>Charger</b>, Power BI ouvre plusieurs connexions en
+        parallèle (jusqu'à 10 par défaut) pour charger les 7 vues en même temps. Le pooler Supabase
+        limite le nombre de connexions simultanées autorisées pour le rôle <code>powerbi_reader</code>,
+        et ce parallélisme le dépasse — d'où l'erreur PostgreSQL <code class="mono">53300</code>.</p>
+      <p><b>Correctif immédiat</b> — <span class="mono">Fichier > Options et paramètres > Options >
+        Fichier actuel > Chargement des données</span> → dans la section <b>« Parallel loading of
+        tables »</b>, sélectionne le bouton radio <b>« One (disable parallel loading) »</b> (au lieu de
+        « Default »). Clique <b>OK</b>. Ça force un chargement séquentiel des vues, une par une, au lieu
+        d'un chargement en rafale. Relance ensuite <b>Charger</b>.</p>
+      <p><b>Si l'erreur persiste</b> — ferme complètement Power BI Desktop (et tout autre client comme
+        pgAdmin ou DBeaver connecté avec le même rôle) pour libérer les connexions restées ouvertes,
+        patiente quelques secondes, puis rouvre et réessaie.</p>
+      <p><b>Si ça revient souvent même à 1 connexion</b> — le rôle a probablement une limite de
+        connexion basse côté PostgreSQL ; un administrateur peut l'augmenter depuis l'éditeur SQL
+        Supabase : <code class="mono">ALTER ROLE powerbi_reader CONNECTION LIMIT 10;</code></p>
+    </div>
+  </details>
 
   <div class="callout">
     <b>⚠️ Enregistrer ≠ Fermer et appliquer.</b> <b>Fermer et appliquer</b> applique tes
@@ -853,6 +912,7 @@
   </details>
 
   <h3 class="section"><span class="n">1.7</span> Repérer l'éditeur Power Query <span class="step-tag action">Pratique</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/clean-data-power-bi/2-shape-data" target="_blank" rel="noopener">Shape the initial data</a></p>
   <p>Voici ce que tu dois voir à l'écran une fois dans l'éditeur — utile pour t'y retrouver au sprint 2 :</p>
   <div class="pq-mock">
     <div class="pq-ribbon">
@@ -895,6 +955,13 @@
     <div class="pq-fx"><b>fx</b> = Table.NavigateToNavigationTable(...) — la barre de formule, où chaque étape s'écrit en langage M</div>
   </div>
 
+  <figure class="screenshot">
+    <img src="/_blob/d8109de7b30476825192dfc5f43e88e6" alt="Capture d'écran de l'éditeur Power Query avec les 7 requêtes chargées, l'aperçu de reporting.v_abonnements et les étapes appliquées Source → Navigation">
+    <figcaption>Capture réelle du sprint 1 — les 7 requêtes dans le volet de gauche, l'aperçu de
+      <code class="mono">v_abonnements</code> au centre, et les étapes appliquées à droite : exactement
+      les 3 zones du schéma ci-dessus.</figcaption>
+  </figure>
+
   <h3 class="section"><span class="n">1.8</span> À faire avant le sprint 2 <span class="step-tag recap">Repère</span></h3>
   <ul class="checklist">
     <li><input type="checkbox" id="c1-1" onchange="__brvmToggleChecklist(this)"><label for="c1-1">Les 7 vues sont visibles dans le volet Requêtes de Power Query</label></li>
@@ -926,6 +993,7 @@
     transformation (sprint 3) et au modèle (sprint 4).</p>
 
   <h3 class="section"><span class="n">2.1</span> Le principe : une recette, pas un bricolage <span class="step-tag info">Info</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/clean-data-power-bi/2-shape-data" target="_blank" rel="noopener">Shape the initial data</a></p>
   <p>Chaque action que tu fais dans l'éditeur Power Query — changer un type, renommer une colonne,
     filtrer une ligne — s'ajoute comme une <b>étape</b> dans le volet <span class="mono">Étapes
     appliquées</span> (repéré au sprint 1). Deux conséquences importantes :</p>
@@ -941,6 +1009,7 @@
   </div>
 
   <h3 class="section"><span class="n">2.2</span> Corriger les types de données <span class="step-tag action">Pratique</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/clean-data-power-bi/4-column-data-types" target="_blank" rel="noopener">Evaluate and change column data types</a></p>
   <p>Power Query devine les types automatiquement à l'import, mais il se trompe souvent sur les dates
     et sur les montants. Sélectionne la colonne → onglet <b>Accueil</b> → <b>Type de données</b> (ou
     clique sur l'icône de type dans l'en-tête de colonne).</p>
@@ -1098,6 +1167,7 @@
     quand tu changes des types depuis le ruban — visible dans la barre de formule (fx).</p>
 
   <h3 class="section"><span class="n">2.3</span> Valeurs nulles : ne pas nettoyer à l'aveugle <span class="step-tag action">Pratique</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/clean-data-power-bi/3-data-structure" target="_blank" rel="noopener">Simplify the data structure</a></p>
   <p>Sur ce jeu de données, un <span class="mono">null</span> n'est pas toujours une erreur — c'est
     parfois l'information elle-même. Deux cas très différents à traiter différemment :</p>
   <ul>
@@ -1124,6 +1194,7 @@
     ciblé sur la colonne clé.</p>
 
   <h3 class="section"><span class="n">2.4</span> Éliminer les doublons — sur la bonne clé <span class="step-tag action">Pratique</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/clean-data-power-bi/3-data-structure" target="_blank" rel="noopener">Simplify the data structure</a></p>
   <div class="callout">
     <b>À exécuter, pas juste à lire :</b> applique <b>Supprimer les doublons</b> sur chacune des 4 vues
     ci-dessous, dans ta requête réelle — ce n'est pas une simple information de référence. La checklist
@@ -1146,6 +1217,7 @@
     inspection visuelle) suffit, purement informatif : pas besoin d'exécuter de suppression dessus.</p>
 
   <h3 class="section"><span class="n">2.5</span> Renommer pour la lisibilité — en dernier <span class="step-tag action">Pratique</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/clean-data-power-bi/3-data-structure" target="_blank" rel="noopener">Simplify the data structure</a></p>
   <p>Double-clic sur l'en-tête de colonne (ou clic droit → <b>Renommer</b>) pour donner des noms clairs,
     qui apparaîtront tels quels dans les visuels du dashboard. Quelques renommages utiles pour la suite :</p>
   <div class="tblwrap">
@@ -1168,6 +1240,7 @@
   </div>
 
   <h3 class="section"><span class="n">2.6</span> L'ordre conseillé, de bout en bout <span class="step-tag info">Info</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/clean-data-power-bi/2-shape-data" target="_blank" rel="noopener">Shape the initial data</a></p>
   <p style="font-size:13px; color:var(--ink-faint)">Ce n'est pas un nouvel ordre : c'est exactement
     celui que tu viens de suivre section par section (2.2 → 2.3 → 2.4 → 2.5) — ce récapitulatif sert
     juste à le voir d'un seul coup d'œil, comme il apparaîtra dans le volet Étapes appliquées.</p>
@@ -1195,12 +1268,119 @@
     </div>
   </div>
 
-  <h3 class="section"><span class="n">2.7</span> À faire avant le sprint 3 <span class="step-tag recap">Repère</span></h3>
+  <h3 class="section"><span class="n">2.7</span> Profiler avant de nettoyer <span class="step-tag action">Pratique</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/clean-data-power-bi/6-profile-data" target="_blank" rel="noopener">Profile data in Power BI</a></p>
+  <p>Tout ce qui précède suppose que tu sais déjà ce qui cloche. Le <b>profilage</b> est l'outil qui te
+    le dit. À faire idéalement <i>avant</i> 2.2, mais il n'est jamais trop tard : c'est une lecture,
+    il ne modifie rien.</p>
+  <p>Dans l'éditeur Power Query : onglet <b>Affichage</b> → section <b>Aperçu des données</b> → coche
+    les trois options.</p>
+  <table class="views">
+    <thead><tr><th>Option</th><th>Ce qu'elle affiche</th><th>Ce que tu y cherches</th></tr></thead>
+    <tbody>
+      <tr><td><b>Qualité de la colonne</b></td><td>% valides / en erreur / vides</td><td>Toute colonne qui n'est pas à 100 % valide</td></tr>
+      <tr><td><b>Distribution de la colonne</b></td><td>Compte des valeurs <b>distinctes</b> et <b>uniques</b></td><td>Cardinalité réelle, doublons cachés</td></tr>
+      <tr><td><b>Profil de colonne</b></td><td>Min, max, moyenne, écart-type, zéros, nulls, nb de lignes</td><td>Valeurs aberrantes, import incomplet</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <b>Le piège des 1 000 lignes.</b> Par défaut Power Query ne profile que les <b>1 000 premières
+    lignes</b>. Sur <span class="mono">v_quotes_history</span> (~17 800 lignes) et
+    <span class="mono">v_analyses_quota_daily</span>, ça ne veut rien dire. Clique sur l'indicateur de
+    profilage dans la <b>barre d'état</b> en bas → <b>Profilage de colonne basé sur l'ensemble du jeu
+    de données</b>. Le calcul devient plus lent : c'est exactement pour ça que la valeur par défaut
+    existe.
+  </div>
+
+  <p><b>Distinctes ≠ uniques</b> — la confusion la plus fréquente, et une question classique du PL-300 :</p>
+  <ul>
+    <li><b>Distinctes</b> = toutes les valeurs différentes, <i>doublons et nulls compris</i></li>
+    <li><b>Uniques</b> = les valeurs qui n'apparaissent <i>qu'une seule fois</i>, nulls exclus</li>
+  </ul>
+  <p>Sur la colonne <span class="mono">A, A, B, C, null</span> : 4 distinctes, 2 uniques. Distinctes est
+    donc toujours ≥ uniques.</p>
+
+  <p><b>Trois contrôles à faire sur tes données</b> — ce ne sont pas des exercices théoriques, ils
+    peuvent révéler de vrais problèmes dans ta base de production :</p>
+  <table class="views">
+    <thead><tr><th>Colonne</th><th>Ce que tu regardes</th><th>Signal d'alarme</th></tr></thead>
+    <tbody>
+      <tr><td><span class="mono">v_quotes_history[ticker]</span></td><td>Valeurs distinctes</td><td>Un écart avec les lignes de <span class="mono">v_stocks</span> = tickers orphelins ou mal saisis</td></tr>
+      <tr><td><span class="mono">v_quotes_history[close]</span></td><td>Min et max</td><td>Un min à 0 ou un max absurde = données de collecte corrompues</td></tr>
+      <tr><td><span class="mono">v_analyses_quota_daily</span></td><td>Distribution des valeurs</td><td>Une régularité trop parfaite = données de test restées en production</td></tr>
+    </tbody>
+  </table>
+  <div class="callout info">
+    <b>Pourquoi le dernier point compte.</b> Les vraies données sont irrégulières. Quand une
+    distribution est trop propre, quelque chose d'artificiel s'est produit — un jeu de test, un bogue
+    de collecte, un import dupliqué. C'est souvent le seul moment où on le détecte.
+  </div>
+
+  <p><b>Deux réflexes tirés du lab officiel</b>, qui ne coûtent rien et évitent des heures de
+    débogage :</p>
+  <table class="views">
+    <thead><tr><th>Réflexe</th><th>Comment</th><th>Pourquoi</th></tr></thead>
+    <tbody>
+      <tr><td><b>Lire la barre d'état après chaque étape</b></td><td>En bas à gauche : nombre de colonnes et de lignes</td><td>Le lab fait vérifier le compte après <i>chaque</i> requête configurée. Un filtre qui retire 15 000 lignes au lieu de 15 se voit immédiatement</td></tr>
+      <tr><td><b>Atteindre la colonne</b></td><td>Accueil → <b>Choisir les colonnes ▾</b> → Atteindre la colonne, puis trier par nom (bouton AZ)</td><td>Bien plus rapide que de faire défiler horizontalement une table large</td></tr>
+    </tbody>
+  </table>
+  <div class="callout info">
+    <b>Le compte de lignes est ton test unitaire.</b> Tu n'as pas de tests automatisés sur une
+    requête Power Query. La barre d'état est ce qui s'en rapproche le plus : note le compte attendu
+    avant une transformation, vérifie-le après. C'est la seule façon d'attraper une jointure qui
+    duplique des lignes ou un filtre trop large — deux erreurs qui ne déclenchent aucun message.
+  </div>
+
+  <h3 class="section"><span class="n">2.8</span> Vérifier que le query folding tient <span class="step-tag action">Pratique</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/get-data/8-performance-issues" target="_blank" rel="noopener">Fix performance issues</a></p>
+  <p>Le <b>query folding</b> est le mécanisme par lequel Power Query traduit tes étapes en SQL et les
+    fait exécuter par <b>Supabase</b> plutôt que par Power BI. Tu ne l'actives pas — il est
+    automatique — mais tes choix déterminent jusqu'où il se propage.</p>
+  <p><b>Comment vérifier :</b> volet <span class="mono">Étapes appliquées</span> → clic droit sur une
+    étape → cherche <b>Afficher la requête native</b>.</p>
+  <ul>
+    <li><b>En gras</b> → le folding fonctionne, clique pour voir le SQL envoyé à Supabase</li>
+    <li><b>Grisé</b> → le folding est cassé à cette étape ; remonte les étapes une à une jusqu'à en
+      trouver une où l'option redevient active, c'est là que ça a lâché</li>
+  </ul>
+
+  <div class="callout info">
+    <b>Les trois briseurs — moyen mnémotechnique « I-F-T » :</b> colonne d'<b>I</b>ndex,
+    <b>F</b>usion entre deux sources différentes, changement de <b>T</b>ype de données. Si le SQL ne
+    sait pas l'exprimer, le folding s'arrête — et <b>il ne reprend jamais</b> : toutes les étapes
+    suivantes se feront localement, même celles qui auraient pu être traduites.
+  </div>
+
+  <p><b>La conséquence directe pour ce chantier :</b> la section 2.2 te fait changer des types de
+    données. C'est le briseur n° 3. Deux façons d'en limiter l'impact :</p>
+  <ol>
+    <li><b>Corriger à la source quand c'est possible.</b> Un montant stocké en texte se règle mieux
+      dans la vue SQL (<span class="mono">cast(colonne as numeric)</span>) que dans Power Query — le
+      folding reste intact et Power BI reçoit le bon type d'emblée.</li>
+    <li><b>Ordonner les étapes.</b> Filtres et suppressions de colonnes <b>d'abord</b> (elles foldent
+      et réduisent le volume transféré), changements de type et colonnes d'index <b>en dernier</b>.
+      C'est déjà la logique de 2.6 — voici maintenant la raison technique derrière.</li>
+  </ol>
+  <div class="callout info">
+    <b>Exercice de démonstration.</b> Sur une requête dupliquée : ajoute un filtre de date, vérifie que
+    la requête native s'affiche et contient bien ton <span class="mono">WHERE</span>. Ajoute ensuite une
+    colonne d'index, puis reclique droit : l'option est grisée. Déplace l'étape d'index avant le filtre
+    par glisser-déposer et observe que le folding ne survit plus du tout. Même résultat à l'écran,
+    performance très différente.
+  </div>
+
+  <h3 class="section"><span class="n">2.9</span> À faire avant le sprint 3 <span class="step-tag recap">Repère</span></h3>
   <ul class="checklist">
     <li><input type="checkbox" id="c2-1" onchange="__brvmToggleChecklist(this)"><label for="c2-1">Les types de données des 7 tables correspondent aux tableaux de 2.2, colonne par colonne (vérifie l'icône de type dans chaque en-tête)</label></li>
     <li><input type="checkbox" id="c2-2" onchange="__brvmToggleChecklist(this)"><label for="c2-2">Tu sais dire, pour chaque table, quels nulls sont légitimes et lesquels ne le sont pas</label></li>
     <li><input type="checkbox" id="c2-3" onchange="__brvmToggleChecklist(this)"><label for="c2-3">Les doublons ont été supprimés sur la clé d'unicité de chaque table (2.4), pas sur une colonne au hasard</label></li>
     <li><input type="checkbox" id="c2-4" onchange="__brvmToggleChecklist(this)"><label for="c2-4">Les colonnes principales ont des noms d'affichage clairs</label></li>
+    <li><input type="checkbox" id="c2-5" onchange="__brvmToggleChecklist(this)"><label for="c2-5">Le profilage est passé sur <b>l'ensemble du jeu de données</b>, pas sur les 1 000 premières lignes</label></li>
+    <li><input type="checkbox" id="c2-6" onchange="__brvmToggleChecklist(this)"><label for="c2-6">Les trois contrôles de 2.7 ont été faits, et tu sais expliquer l'écart entre valeurs distinctes et uniques</label></li>
+    <li><input type="checkbox" id="c2-7" onchange="__brvmToggleChecklist(this)"><label for="c2-7">Tu as vu au moins une fois la requête native s'afficher, et au moins une fois le folding se casser</label></li>
+    <li><input type="checkbox" id="c2-8" onchange="__brvmToggleChecklist(this)"><label for="c2-8">Tu notes le compte de lignes de la barre d'état avant et après chaque transformation importante</label></li>
   </ul>
 
   <div class="footfoot">
@@ -1277,6 +1457,7 @@
     — pas besoin d'écrire la formule à la main pour celle-ci.</p>
 
   <h3 class="section"><span class="n">3.4</span> Fusion de requêtes — aller chercher une info ailleurs <span class="step-tag action">Pratique</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/clean-data-power-bi/5-combine-tables" target="_blank" rel="noopener">Combine multiple tables into a single table</a></p>
   <p>Avant de fusionner quoi que ce soit, <b>duplique la requête</b> que tu veux tester : clic droit sur
     <span class="mono">v_quotes_history</span> dans le volet Requêtes → <b>Dupliquer</b>. Renomme la
     copie <span class="mono">Sandbox fusion</span>. Tu expérimentes dessus, jamais sur la vraie table —
@@ -1309,6 +1490,7 @@
     <span class="mono">[Cours de clôture] * [shares_outstanding]</span>.</p>
 
   <h3 class="section"><span class="n">3.5</span> Fusion ou relation ? La question à se poser à chaque fois <span class="step-tag info">Info</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/clean-data-power-bi/5-combine-tables" target="_blank" rel="noopener">Combine multiple tables into a single table</a></p>
   <p>Tu viens de fusionner deux tables pour obtenir une capitalisation boursière. Au sprint 4, tu vas
     créer une <b>relation</b> entre les mêmes deux tables. Les deux se ressemblent — elles ne servent pas
     au même besoin :</p>
@@ -1343,13 +1525,243 @@
     que le type de <span class="mono">date_jour</span> est bien <span class="mono">Date</span> (fait au
     sprint 2) : la table est prête à être reliée telle quelle au sprint 4.</p>
 
-  <h3 class="section"><span class="n">3.7</span> À faire avant le sprint 4 <span class="step-tag recap">Repère</span></h3>
+  <h3 class="section"><span class="n">3.7</span> Ajouter des requêtes : l'autre façon de combiner <span class="step-tag action">Pratique</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/clean-data-power-bi/5-combine-tables" target="_blank" rel="noopener">Combine multiple tables into a single table</a></p>
+  <p>La fusion (3.4) ajoute des <b>colonnes</b>. L'<b>ajout</b> (<i>append</i>) fait l'inverse : il
+    ajoute des <b>lignes</b>. Deux tables de 300 et 100 lignes donnent une table de 400.</p>
+  <table class="views">
+    <thead><tr><th></th><th>Fusionner (merge)</th><th>Ajouter (append)</th></tr></thead>
+    <tbody>
+      <tr><td>Ajoute</td><td>Des colonnes</td><td>Des lignes</td></tr>
+      <tr><td>Forme</td><td>Plus large</td><td>Plus haute</td></tr>
+      <tr><td>Prérequis</td><td>Une colonne clé commune</td><td>Des noms de colonnes identiques</td></tr>
+      <tr><td>Équivalent SQL</td><td><span class="mono">JOIN</span></td><td><span class="mono">UNION ALL</span></td></tr>
+    </tbody>
+  </table>
+  <p>La règle d'or : les colonnes que tu veux voir fusionner doivent <b>porter exactement le même
+    nom</b> dans chaque table. Sinon Power Query crée des colonnes séparées remplies de nulls.</p>
+
+  <div class="callout info">
+    <b>Pourquoi tes 7 vues n'en ont pas besoin.</b> Une base relationnelle bien conçue range déjà les
+    données d'un même type dans une seule table — c'est le travail qu'on a fait côté SQL. L'ajout sert
+    surtout quand les données arrivent découpées : un fichier Excel par mois, un export par filiale,
+    une table d'archive séparée de la table courante. Le PL-300 le teste quand même, et tu en auras
+    besoin en entreprise. D'où l'exercice ci-dessous.
+  </div>
+
+  <p><b>Exercice en bac à sable</b> — il se vérifie tout seul :</p>
+  <ol>
+    <li>Duplique <span class="mono">v_quotes_history</span> deux fois (clic droit → <b>Dupliquer</b>)</li>
+    <li>Sur la première copie, filtre les dates sur 2025 ; sur la seconde, sur 2026</li>
+    <li><b>Accueil → Ajouter des requêtes → Ajouter des requêtes comme nouvelles</b></li>
+    <li>Ajoute les deux copies, OK</li>
+    <li>Compare le nombre de lignes obtenu avec le total 2025 + 2026 de la table d'origine : ça doit
+      tomber juste</li>
+    <li>Désactive le chargement des trois requêtes de l'exercice</li>
+  </ol>
+  <div class="callout info">
+    <b>« Comme nouvelles » ou pas ?</b> <b>Ajouter des requêtes comme nouvelles</b> crée une table
+    supplémentaire et laisse les originales intactes. <b>Ajouter des requêtes</b> tout court verse les
+    lignes <i>dans</i> une table existante et la modifie. Pour un chantier comme celui-ci, prends
+    toujours « comme nouvelles » : tu gardes la possibilité de revenir en arrière.
+  </div>
+
+  <h3 class="section"><span class="n">3.8</span> Dépivoter et pivoter : changer la forme d'une table <span class="step-tag action">Pratique</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/clean-data-power-bi/2-shape-data" target="_blank" rel="noopener">Shape the initial data</a></p>
+  <p>Deux transformations symétriques, et une notion que le PL-300 teste systématiquement :</p>
+  <ul>
+    <li><b>Dépivoter</b> (<i>unpivot</i>) : colonnes → lignes. Transforme une table <b>large</b> en
+      table <b>haute</b>. Produit toujours deux colonnes nommées <span class="mono">Attribut</span>
+      (les anciens en-têtes) et <span class="mono">Valeur</span> (le contenu des cellules).</li>
+    <li><b>Pivoter</b> : lignes → colonnes, avec une fonction d'agrégation (Somme, Moyenne, Compte,
+      Min, Max, Médiane).</li>
+  </ul>
+  <p>Le cas classique : un fichier Excel avec une colonne « 2024 », une colonne « 2025 », une colonne
+    « 2026 ». Lisible pour un humain, inexploitable en DAX — impossible de totaliser les trois années
+    sans écrire une formule par colonne. Dépivoter donne une colonne <span class="mono">Année</span> et
+    une colonne <span class="mono">Montant</span>, et tout redevient simple.</p>
+
+  <div class="callout info">
+    <b>Ce que ça t'apprend sur ton propre travail.</b> Aucune de tes 7 vues n'a besoin d'être
+    dépivotée — elles sortent déjà en format haut et étroit. Ce n'est pas un hasard : <b>une base
+    relationnelle produit nativement la forme que DAX attend</b>. Le problème du dépivotage est un
+    problème d'Excel, où les humains étalent les données pour les lire. Retenir ça, c'est comprendre
+    pourquoi le travail fait côté SQL t'a épargné une étape entière.
+  </div>
+
+  <p><b>Exercice en bac à sable</b> — aller-retour, pour voir les deux sens :</p>
+  <ol>
+    <li>Duplique <span class="mono">v_quotes_history</span>, garde seulement
+      <span class="mono">date</span>, <span class="mono">ticker</span>, <span class="mono">close</span></li>
+    <li>Filtre sur 3 ou 4 tickers pour garder l'aperçu lisible</li>
+    <li>Sélectionne <span class="mono">ticker</span> → onglet <b>Transformer</b> →
+      <b>Colonne dynamique</b> → colonne de valeurs = <span class="mono">close</span>, fonction
+      d'agrégation = <b>Moyenne</b></li>
+    <li>Tu obtiens une colonne par ticker : c'est la forme « Excel ». Regarde à quel point elle est
+      agréable à lire et pénible à exploiter</li>
+    <li>Sélectionne ces colonnes de tickers → <b>Transformer → Dépivoter les colonnes</b> — tu
+      retrouves la forme d'origine, avec <span class="mono">Attribut</span> et
+      <span class="mono">Valeur</span> à renommer</li>
+    <li>Désactive le chargement de la requête</li>
+  </ol>
+  <div class="callout info">
+    <b>Note performance.</b> Ces deux transformations cassent souvent le query folding (2.8) : le SQL
+    n'a pas d'équivalent direct du pivot dynamique. Une raison de plus de les placer en fin de
+    séquence, après les filtres.
+  </div>
+
+  <p><b>La variante qui sauve du temps : Dépivoter les autres colonnes.</b> Le menu offre trois
+    options, et le choix entre elles change la robustesse de ta requête :</p>
+  <table class="views">
+    <thead><tr><th>Option</th><th>Ce qu'elle dépivote</th><th>Quand la choisir</th></tr></thead>
+    <tbody>
+      <tr><td><b>Dépivoter les colonnes</b></td><td>Celles que tu as sélectionnées</td><td>Peu de colonnes à dépivoter</td></tr>
+      <tr><td><b>Dépivoter les autres colonnes</b> ⭐</td><td>Tout <i>sauf</i> ce que tu as sélectionné</td><td>Beaucoup de colonnes à dépivoter, peu à garder</td></tr>
+      <tr><td><b>Dépivoter uniquement les colonnes sélectionnées</b></td><td>Strictement celles-là, figées</td><td>Quand la liste ne doit jamais varier</td></tr>
+    </tbody>
+  </table>
+  <div class="callout info">
+    <b>Pourquoi « les autres » est souvent le bon choix.</b> Dans le lab officiel, une table a 12
+    colonnes de mois (M01 à M12) et deux colonnes à conserver. Sélectionner les deux à garder et
+    dépivoter le reste est plus rapide — mais surtout plus solide : si la source gagne un M13 le mois
+    prochain, la requête l'absorbe toute seule. L'autre option aurait ignoré la nouvelle colonne en
+    silence.
+  </div>
+
+  <h3 class="section"><span class="n">3.9</span> L'Éditeur avancé : lire le code M de tes requêtes <span class="step-tag action">Pratique</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/clean-data-power-bi/7-advanced-editor" target="_blank" rel="noopener">Use Advanced Editor to modify M code</a></p>
+  <p>Depuis le sprint 2, chacun de tes clics écrit du code — le <b>langage M</b> — que Power Query
+    exécute ensuite. L'<b>Éditeur avancé</b> te montre ce code. Tu n'as pas besoin de l'écrire pour
+    travailler, mais savoir le lire change trois choses concrètes dans ce chantier.</p>
+  <p><b>Ruban Affichage → Éditeur avancé</b> — le même ruban que les outils de profilage de 2.7.</p>
+
+  <p>Toute requête a la même forme :</p>
+  <div class="callout info">
+    <span class="mono">let</span><br>
+    &nbsp;&nbsp;<span class="mono">Source = PostgreSQL.Database(...),</span><br>
+    &nbsp;&nbsp;<span class="mono">reporting_v_quotes_history = Source{[Schema="reporting",Item="v_quotes_history"]}[Data],</span><br>
+    &nbsp;&nbsp;<span class="mono">#"Lignes filtrées" = Table.SelectRows(reporting_v_quotes_history, each ...),</span><br>
+    &nbsp;&nbsp;<span class="mono">#"Type modifié" = Table.TransformColumnTypes(#"Lignes filtrées", {...})</span><br>
+    <span class="mono">in</span><br>
+    &nbsp;&nbsp;<span class="mono">#"Type modifié"</span>
+  </div>
+  <ul>
+    <li><span class="mono">let</span> ouvre la liste des étapes — une ou deux lignes par étape appliquée</li>
+    <li>Chaque étape <b>reprend le nom de la précédente</b>, celui à gauche du signe <span class="mono">=</span></li>
+    <li><span class="mono">in</span> désigne l'étape à renvoyer — presque toujours la dernière</li>
+  </ul>
+  <div class="callout info">
+    <b>Pourquoi réordonner casse tout.</b> C'est une course de relais : chaque ligne prend le témoin de
+    celle qu'elle nomme. Interverti deux étapes et le témoin part vers un coureur qui n'a pas encore
+    couru. Si tu déplaces une étape par glisser-déposer (comme en 2.8), Power Query réécrit les
+    références pour toi — mais dans l'Éditeur avancé, tu es seul responsable.
+  </div>
+
+  <p><b>Trois usages concrets pour ce chantier :</b></p>
+  <table class="views">
+    <thead><tr><th>Situation</th><th>Ce que l'Éditeur avancé t'apporte</th></tr></thead>
+    <tbody>
+      <tr><td>Comparer deux versions d'un fichier .pbix</td><td>Tu lis la recette complète d'une requête d'un coup d'œil, au lieu de cliquer sur chaque étape une par une</td></tr>
+      <tr><td>Le pooler Supabase change d'adresse</td><td>Tu corriges le nom du serveur directement dans le code, puis <b>Terminé</b></td></tr>
+      <tr><td>Reproduire une transformation sur une autre vue</td><td>Tu copies la ligne M et adaptes le nom de la table, plutôt que de refaire tous les clics</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <b>M et DAX ne sont pas la même chose</b> — et l'examen y revient sans cesse. Le <b>M</b> vit dans
+    Power Query et transforme les données <i>avant</i> le chargement (sprints 2 et 3). Le <b>DAX</b>
+    vit dans le modèle et calcule <i>après</i> le chargement (sprints 4 et 5). Deux langages, deux
+    moments, deux fenêtres.
+  </div>
+
+  <p><b>Exercice.</b> Ouvre l'Éditeur avancé sur <span class="mono">v_quotes_history</span> et
+    retrouve, ligne par ligne, chacune des étapes que tu as créées aux sprints 2 et 3. Repère le nom
+    qui suit le <span class="mono">in</span>. Ne modifie rien cette fois — l'objectif est de lire.</p>
+
+  <h3 class="section"><span class="n">3.10</span> Deux autres façons de dériver une colonne <span class="step-tag action">Pratique</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/clean-data-power-bi/8-lab" target="_blank" rel="noopener">Exercise - Load data in Power BI Desktop</a></p>
+  <p>Les sections 3.1 à 3.3 couvraient la colonne personnalisée et la colonne conditionnelle. Le lab
+    officiel en ajoute deux autres, qui évitent d'écrire la moindre formule.</p>
+
+  <p><b>Fusionner des colonnes</b> — assembler plusieurs colonnes en une seule, avec un séparateur.</p>
+  <ol>
+    <li>Sélectionne la première colonne, puis <b>Ctrl+clic</b> sur la seconde — l'ordre de sélection
+      détermine l'ordre dans le résultat</li>
+    <li>Clic droit sur l'un des en-têtes → <b>Fusionner les colonnes</b></li>
+    <li>Choisis le séparateur (Espace, Virgule, Personnalisé…) et le nom de la nouvelle colonne</li>
+  </ol>
+  <div class="callout info">
+    <b>Attention — les colonnes d'origine disparaissent.</b> Fusionner les consomme. Si tu as encore
+    besoin du prénom et du nom séparément, passe par <b>Ajouter une colonne → Fusionner les
+    colonnes</b> plutôt que par l'onglet Transformer : la version de l'onglet « Ajouter une
+    colonne » conserve les originales.
+  </div>
+
+  <p><b>Colonne d'après les exemples</b> — tu montres le résultat voulu, Power Query devine la
+    formule.</p>
+  <ol>
+    <li><b>Ajouter une colonne → Colonne d'après les exemples</b></li>
+    <li>Dans la première cellule, tape le résultat attendu pour cette ligne, puis <b>Entrée</b></li>
+    <li>Power Query remplit les autres lignes avec sa prédiction et affiche la formule M au-dessus
+      de la grille</li>
+    <li>Corrige une cellule si la prédiction se trompe — elle s'ajuste</li>
+    <li>Renomme la colonne et valide</li>
+  </ol>
+  <p>Dans le lab, c'est ainsi qu'on fabrique une date à partir d'une colonne Année et d'une colonne
+    Numéro de mois : on tape <span class="mono">7/1/2017</span> sur la première ligne, et la
+    combinaison des deux colonnes est déduite.</p>
+  <div class="callout info">
+    <b>Lis toujours la formule générée.</b> C'est la grande valeur de cette fonctionnalité : elle
+    t'enseigne le M (3.9) en partant d'un exemple concret. Et c'est aussi la précaution à prendre —
+    la prédiction est une devinette, pas une règle. Vérifie-la sur quelques lignes avant de
+    continuer, surtout quand des formats de date sont en jeu.
+  </div>
+
+  <h3 class="section"><span class="n">3.11</span> Niveaux de confidentialité : quand Power BI refuse de croiser deux sources <span class="step-tag info">Concept</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/clean-data-power-bi/8-lab" target="_blank" rel="noopener">Exercise - Load data in Power BI Desktop</a></p>
+  <p>Au moment de fusionner deux requêtes issues de <b>sources différentes</b>, une fenêtre
+    <b>Niveaux de confidentialité</b> peut s'ouvrir et demander de classer chaque source.</p>
+  <table class="views">
+    <thead><tr><th>Niveau</th><th>Ce qu'il autorise</th></tr></thead>
+    <tbody>
+      <tr><td><b>Public</b></td><td>Données librement partageables avec les autres sources</td></tr>
+      <tr><td><b>Organizational</b></td><td>Partage autorisé avec les autres sources de l'organisation</td></tr>
+      <tr><td><b>Private</b></td><td>Jamais partagé avec aucune autre source</td></tr>
+    </tbody>
+  </table>
+  <div class="callout info">
+    <b>Ce que le réglage signifie vraiment.</b> Il ne dit pas qui a le droit de voir les données — il
+    dit si le <b>moteur Power Query</b> peut faire transiter les valeurs d'une source vers une autre
+    pendant l'exécution. Marquer une source <b>Private</b> ne protège pas les données d'un lecteur du
+    rapport; ça empêche simplement Power Query de les envoyer à l'autre système pour effectuer la
+    jointure.
+  </div>
+  <p><b>Pourquoi ça te concerne directement.</b> Tant que tes requêtes viennent toutes de Supabase,
+    la question ne se pose pas. Mais dès que tu fusionnes une vue <span class="mono">reporting.*</span>
+    avec un fichier Excel ou une autre base, la fenêtre apparaîtra. Et c'est là qu'il faut réfléchir :
+    tes vues contiennent des données de production. Les marquer <b>Organizational</b> plutôt que
+    <b>Public</b> est le réglage prudent.</p>
+  <div class="callout info">
+    <b>Le piège de performance.</b> Quand deux sources ont des niveaux incompatibles, Power Query
+    refuse de déléguer la jointure et rapatrie tout localement — le query folding (2.8) tombe. Si une
+    fusion entre sources devient subitement très lente, les niveaux de confidentialité sont le premier
+    endroit à regarder.
+  </div>
+
+  <h3 class="section"><span class="n">3.12</span> À faire avant le sprint 4 <span class="step-tag recap">Repère</span></h3>
   <ul class="checklist">
     <li><input type="checkbox" id="c3-1" onchange="__brvmToggleChecklist(this)"><label for="c3-1"><span class="mono">Valeur transigée (M FCFA)</span> existe sur v_quotes_history, en type Nombre</label></li>
     <li><input type="checkbox" id="c3-2" onchange="__brvmToggleChecklist(this)"><label for="c3-2"><span class="mono">Type de société</span> (Banque/Non-bancaire) existe sur v_fundamentals</label></li>
     <li><input type="checkbox" id="c3-3" onchange="__brvmToggleChecklist(this)"><label for="c3-3">Tu as fait l'exercice de fusion sur une requête dupliquée, jamais sur les 7 tables originales</label></li>
     <li><input type="checkbox" id="c3-4" onchange="__brvmToggleChecklist(this)"><label for="c3-4">Tu sais expliquer, dans tes mots, la différence entre fusionner et relier</label></li>
     <li><input type="checkbox" id="c3-5" onchange="__brvmToggleChecklist(this)"><label for="c3-5">Le chargement de la requête sandbox est désactivé</label></li>
+    <li><input type="checkbox" id="c3-6" onchange="__brvmToggleChecklist(this)"><label for="c3-6">L'exercice d'ajout (3.7) est fait et le compte de lignes tombe juste</label></li>
+    <li><input type="checkbox" id="c3-7" onchange="__brvmToggleChecklist(this)"><label for="c3-7">Tu sais dire en une phrase ce que fait <b>ajouter</b> par rapport à <b>fusionner</b>, et lequel correspond à <span class="mono">UNION ALL</span></label></li>
+    <li><input type="checkbox" id="c3-8" onchange="__brvmToggleChecklist(this)"><label for="c3-8">L'aller-retour pivoter / dépivoter (3.8) est fait, et tu as vu apparaître les colonnes <span class="mono">Attribut</span> et <span class="mono">Valeur</span></label></li>
+    <li><input type="checkbox" id="c3-9" onchange="__brvmToggleChecklist(this)"><label for="c3-9">Tu as ouvert l'Éditeur avancé sur au moins une requête et retrouvé tes étapes dans le code M</label></li>
+    <li><input type="checkbox" id="c3-10" onchange="__brvmToggleChecklist(this)"><label for="c3-10">Tu sais dire en une phrase ce qui distingue le <b>M</b> du <b>DAX</b></label></li>
+    <li><input type="checkbox" id="c3-11" onchange="__brvmToggleChecklist(this)"><label for="c3-11">Tu as essayé <b>Colonne d'après les exemples</b> au moins une fois et lu la formule M générée</label></li>
+    <li><input type="checkbox" id="c3-12" onchange="__brvmToggleChecklist(this)"><label for="c3-12">Tu sais ce que font les trois niveaux de confidentialité, et lequel convient à tes vues <span class="mono">reporting.*</span></label></li>
   </ul>
 
   <div class="footfoot">
@@ -1844,11 +2256,23 @@ Total abonnements (FCFA) = <span class="c">SUM</span>(v_abonnements[montant])</p
   </ol>
 
   <h3 class="section"><span class="n">7.5</span> Vérifier la performance avant de livrer <span class="step-tag action">Pratique</span></h3>
+  <p class="msref"><span class="ms">Microsoft Learn</span><a href="https://learn.microsoft.com/fr-ca/training/modules/get-data/8-performance-issues" target="_blank" rel="noopener">Fix performance issues</a></p>
   <p><b>Affichage → Analyseur de performances → Actualiser les visuels</b> : chaque visuel affiche
     son temps de calcul DAX et de rendu. Un visuel qui dépasse largement les autres (souvent une
     table avec trop de lignes, ou une mesure avec <span class="mono">DISTINCTCOUNT</span> sur une
     grande table) mérite d'être simplifié — soit en réduisant les lignes affichées, soit en
     déplaçant le calcul lourd dans une mesure dédiée plus simple.</p>
+  <p>L'Analyseur de performances mesure le <b>rapport</b>. Si c'est l'<b>actualisation</b> qui traîne,
+    le problème est en amont et l'outil est ailleurs : dans l'éditeur Power Query, onglet
+    <b>Outils</b> → <b>Démarrer les diagnostics</b>, tu rejoues tes transformations, puis
+    <b>Arrêter les diagnostics</b>. <b>Diagnostiquer l'étape</b> donne la durée de chaque étape prise
+    isolément — l'étape nettement plus lente que les autres est ton point de départ.</p>
+  <div class="callout info">
+    <b>Les deux outils répondent à deux questions différentes.</b> Le query folding (2.8) te dit
+    <i>si</i> le travail est délégué à Supabase. Les diagnostics te disent <i>où part le temps</i>.
+    Vérifie le folding en premier : une étape lente qui ne folde pas est souvent une étape mal placée,
+    pas une étape intrinsèquement coûteuse.
+  </div>
 
   <h3 class="section"><span class="n">7.6</span> Publier <span class="step-tag action">Pratique</span></h3>
   <ol>
