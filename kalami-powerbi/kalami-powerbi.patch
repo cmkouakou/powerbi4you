@@ -1,0 +1,1737 @@
+From 1ef457dc96e3981b3f6fce24ea5ebc109ab5bc6c Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 5 Nov 2026 14:35:40 -0500
+Subject: [PATCH] =?UTF-8?q?Kalami=20Donn=C3=A9es=20:=20espace=20priv=C3=A9?=
+ =?UTF-8?q?=20/powerbi=20pour=20la=20pr=C3=A9paration=20PL-300?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Nouvel espace bâti sur le patron de Kalami Stratégie : gabarit, en-tête et
+pied de page propres, connexion qui ramène à l'espace.
+
+- Carte du parcours : 4 modules, 25 leçons, durées et liens Microsoft Learn
+- Contenu des leçons en TypeScript typé plutôt qu'en Markdown — versionné,
+  relu en revue de code, sans dépendance de rendu supplémentaire
+- 4 premiers résumés rédigés ; le registre fait foi, une leçon sans résumé
+  s'affiche « à venir » au lieu de casser la page
+- /powerbi ajouté aux préfixes protégés et exclu des moteurs de recherche
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Q2qH5frT74Prohqxgb5V1j
+---
+ CHANGELOG.md                                  |  21 ++
+ package-lock.json                             |   4 +-
+ package.json                                  |   2 +-
+ src/app/powerbi/[module]/[lecon]/page.tsx     | 119 +++++++
+ src/app/powerbi/layout.tsx                    |  46 +++
+ src/app/powerbi/page.tsx                      | 115 +++++++
+ src/components/powerbi/lesson-blocks.tsx      | 122 +++++++
+ src/components/powerbi/powerbi-chrome.tsx     | 119 +++++++
+ src/i18n/fr-powerbi.ts                        |  73 +++++
+ src/i18n/powerbi.ts                           |  22 ++
+ src/lib/auth/routes.ts                        |   5 +
+ src/lib/powerbi/content.ts                    | 103 ++++++
+ .../fondements-du-modele.ts                   | 168 ++++++++++
+ .../framework-de-modele/introduction.ts       |  73 +++++
+ src/lib/powerbi/lessons/index.ts              |  50 +++
+ .../nettoyer-transformer/editeur-avance.ts    |  90 ++++++
+ .../profiler-les-donnees.ts                   | 104 ++++++
+ src/lib/powerbi/modules.ts                    | 305 ++++++++++++++++++
+ 18 files changed, 1538 insertions(+), 3 deletions(-)
+ create mode 100644 src/app/powerbi/[module]/[lecon]/page.tsx
+ create mode 100644 src/app/powerbi/layout.tsx
+ create mode 100644 src/app/powerbi/page.tsx
+ create mode 100644 src/components/powerbi/lesson-blocks.tsx
+ create mode 100644 src/components/powerbi/powerbi-chrome.tsx
+ create mode 100644 src/i18n/fr-powerbi.ts
+ create mode 100644 src/i18n/powerbi.ts
+ create mode 100644 src/lib/powerbi/content.ts
+ create mode 100644 src/lib/powerbi/lessons/framework-de-modele/fondements-du-modele.ts
+ create mode 100644 src/lib/powerbi/lessons/framework-de-modele/introduction.ts
+ create mode 100644 src/lib/powerbi/lessons/index.ts
+ create mode 100644 src/lib/powerbi/lessons/nettoyer-transformer/editeur-avance.ts
+ create mode 100644 src/lib/powerbi/lessons/nettoyer-transformer/profiler-les-donnees.ts
+ create mode 100644 src/lib/powerbi/modules.ts
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 9680573..bf9839a 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -1,5 +1,26 @@
+ # Journal des modifications
+ 
++## [v0.17.0] - 2026-11-05 — Kalami Données : parcours de préparation PL-300
++### Ajouté
++- Nouvel espace privé `/powerbi` (« Kalami Données ») : parcours de révision de la
++  certification Microsoft PL-300, bâti sur le même patron que Kalami Stratégie — gabarit,
++  en-tête et pied de page propres, connexion et déconnexion qui ramènent à l'espace
++  (`src/app/powerbi/layout.tsx`, `src/components/powerbi/powerbi-chrome.tsx`).
++- Carte du parcours : quatre modules et vingt-cinq leçons, avec durée et lien vers la page
++  officielle Microsoft Learn de chacune (`src/lib/powerbi/modules.ts`).
++- Résumés de leçons écrits en TypeScript typé plutôt qu'en Markdown, pour rester versionnés
++  et relus en revue de code, sans ajouter de dépendance de rendu : blocs titre, paragraphe,
++  liste, tableau, encadré et code (`src/lib/powerbi/content.ts`,
++  `src/components/powerbi/lesson-blocks.tsx`).
++- Quatre premiers résumés rédigés ; une leçon sans résumé reste visible et annoncée comme
++  « à venir », le registre faisant foi (`src/lib/powerbi/lessons/`).
++- Textes français de l'espace, séparés du dictionnaire principal (`src/i18n/fr-powerbi.ts`).
++
++### Sécurité
++- `/powerbi` ajouté aux préfixes protégés : l'espace entier exige une connexion pendant sa
++  construction, et son gabarit demande aux moteurs de recherche de ne pas l'indexer
++  (`src/lib/auth/routes.ts`).
++
+ ## [v0.16.6] - 2026-11-04 — Gantt de la feuille de route aligné
+ ### Corrigé
+ - Kalami Stratégie, étape 8 : dans la vue Gantt, le nom d'un chantier se plaçait sur la
+diff --git a/package-lock.json b/package-lock.json
+index 467f055..cc47bb6 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -1,12 +1,12 @@
+ {
+   "name": "kalami",
+-  "version": "0.15.2",
++  "version": "0.17.0",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "kalami",
+-      "version": "0.15.2",
++      "version": "0.17.0",
+       "dependencies": {
+         "@anthropic-ai/sdk": "^0.133.0",
+         "@next/third-parties": "^16.4.2",
+diff --git a/package.json b/package.json
+index 1fe1199..9c03360 100644
+--- a/package.json
++++ b/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "kalami",
+-  "version": "0.16.6",
++  "version": "0.17.0",
+   "private": true,
+   "scripts": {
+     "dev": "next dev",
+diff --git a/src/app/powerbi/[module]/[lecon]/page.tsx b/src/app/powerbi/[module]/[lecon]/page.tsx
+new file mode 100644
+index 0000000..7863ab6
+--- /dev/null
++++ b/src/app/powerbi/[module]/[lecon]/page.tsx
+@@ -0,0 +1,119 @@
++/**
++ * =============================================================
++ *  Fichier    : page.tsx (powerbi/[module]/[lecon])
++ *  Projet     : Kalami Données
++ *  Description: Page d'une leçon : son résumé, le lien vers la page officielle Microsoft
++ *               Learn dont elle vient, et la navigation vers les leçons voisines. Une
++ *               leçon encore sans résumé affiche une explication plutôt qu'une erreur,
++ *               pour que la carte du parcours reste parcourable de bout en bout.
++ *  Auteur     : Claude Marcel
++ *  Version    : 1.0
++ *  Date       : 2026-11-05
++ *  Dépendances: lib/powerbi/modules.ts, lib/powerbi/lessons, components/powerbi
++ * =============================================================
++ */
++
++import type { Metadata } from "next";
++import Link from "next/link";
++import { notFound } from "next/navigation";
++
++import { LessonBlocks } from "@/components/powerbi/lesson-blocks";
++import { PANEL_SAND } from "@/components/ui/styles";
++import { interpolate } from "@/i18n";
++import { getPowerbiDictionary } from "@/i18n/powerbi";
++import { requireUser } from "@/lib/auth/dal";
++import { POWERBI_HOME } from "@/lib/auth/routes";
++import { getResume } from "@/lib/powerbi/lessons";
++import { getLesson, getVoisines } from "@/lib/powerbi/modules";
++
++const d = getPowerbiDictionary();
++
++type Params = Promise<{ module: string; lecon: string }>;
++
++export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
++  const { module: moduleSlug, lecon: lessonSlug } = await params;
++  const trouve = getLesson(moduleSlug, lessonSlug);
++  if (!trouve) return {};
++  return { title: trouve.lecon.titre, description: trouve.lecon.accroche };
++}
++
++export default async function LeconPage({ params }: { params: Params }) {
++  await requireUser(POWERBI_HOME);
++
++  const { module: moduleSlug, lecon: lessonSlug } = await params;
++  const trouve = getLesson(moduleSlug, lessonSlug);
++  if (!trouve) notFound();
++
++  const { module, lecon } = trouve;
++  const contenu = await getResume(moduleSlug, lessonSlug);
++  const { precedente, suivante } = getVoisines(moduleSlug, lessonSlug);
++
++  return (
++    <article className="flex flex-col gap-6">
++      <nav aria-label={d.lecon.retour}>
++        <Link href={POWERBI_HOME} className="text-small text-ink-muted hover:underline">
++          ← {d.lecon.retour}
++        </Link>
++      </nav>
++
++      <header className="flex flex-col gap-2">
++        <p className="text-small text-ink-muted">
++          {module.rang}. {module.titre}
++        </p>
++        <h1 className="font-serif text-h1 font-semibold text-encre">{lecon.titre}</h1>
++        <p className="max-w-prose text-ink-muted">{lecon.accroche}</p>
++        <p className="text-caption text-ink-muted">
++          {interpolate(d.accueil.minutes, { n: String(lecon.minutes) })}
++        </p>
++      </header>
++
++      {contenu ? (
++        <LessonBlocks contenu={contenu} />
++      ) : (
++        <div className={`${PANEL_SAND} max-w-prose px-4 py-3`}>
++          <p className="font-medium text-encre">{d.lecon.nonRedigee}</p>
++          <p className="mt-1 text-small text-ink-muted">{d.lecon.nonRedigeeAide}</p>
++        </div>
++      )}
++
++      {lecon.microsoftLearn && (
++        <p className="text-small">
++          <a
++            href={lecon.microsoftLearn}
++            target="_blank"
++            rel="noopener noreferrer"
++            className="text-encre underline"
++          >
++            {d.lecon.source}
++          </a>
++        </p>
++      )}
++
++      <nav
++        aria-label={d.lecon.suivante}
++        className="mt-4 flex flex-wrap justify-between gap-4 border-t border-line pt-4 text-small"
++      >
++        {precedente ? (
++          <Link
++            href={`${POWERBI_HOME}/${precedente.module.slug}/${precedente.lecon.slug}`}
++            className="max-w-xs hover:underline"
++          >
++            <span className="block text-caption text-ink-muted">{d.lecon.precedente}</span>
++            <span className="text-encre">{precedente.lecon.titre}</span>
++          </Link>
++        ) : (
++          <span />
++        )}
++        {suivante && (
++          <Link
++            href={`${POWERBI_HOME}/${suivante.module.slug}/${suivante.lecon.slug}`}
++            className="max-w-xs text-right hover:underline"
++          >
++            <span className="block text-caption text-ink-muted">{d.lecon.suivante}</span>
++            <span className="text-encre">{suivante.lecon.titre}</span>
++          </Link>
++        )}
++      </nav>
++    </article>
++  );
++}
+diff --git a/src/app/powerbi/layout.tsx b/src/app/powerbi/layout.tsx
+new file mode 100644
+index 0000000..e91554a
+--- /dev/null
++++ b/src/app/powerbi/layout.tsx
+@@ -0,0 +1,46 @@
++/**
++ * =============================================================
++ *  Fichier    : layout.tsx (powerbi)
++ *  Projet     : Kalami Données
++ *  Description: Gabarit de l'espace de préparation PL-300 : en-tête et pied de page
++ *               propres, pour qu'un lien vers /powerbi mène directement au parcours.
++ *               Espace privé : il n'est pas indexé par les moteurs de recherche, et
++ *               chaque page appelle requireUser.
++ *  Auteur     : Claude Marcel
++ *  Version    : 1.0
++ *  Date       : 2026-11-05
++ *  Dépendances: components/powerbi/powerbi-chrome.tsx, i18n
++ * =============================================================
++ */
++
++import type { Metadata } from "next";
++import type { ReactNode } from "react";
++
++import { PowerbiFooter, PowerbiHeader } from "@/components/powerbi/powerbi-chrome";
++import { getPowerbiDictionary } from "@/i18n/powerbi";
++
++const d = getPowerbiDictionary();
++
++export const metadata: Metadata = {
++  title: { default: d.title, template: `%s · ${d.title}` },
++  description: d.description,
++  // Section privée en construction : hors des moteurs de recherche
++  robots: { index: false, follow: false },
++};
++
++export default function PowerbiLayout({ children }: { children: ReactNode }) {
++  return (
++    <>
++      <PowerbiHeader />
++      {/* Cible du lien « Aller au contenu » (gabarit racine) */}
++      <div
++        id="contenu"
++        tabIndex={-1}
++        className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-8"
++      >
++        {children}
++      </div>
++      <PowerbiFooter />
++    </>
++  );
++}
+diff --git a/src/app/powerbi/page.tsx b/src/app/powerbi/page.tsx
+new file mode 100644
+index 0000000..9498f63
+--- /dev/null
++++ b/src/app/powerbi/page.tsx
+@@ -0,0 +1,115 @@
++/**
++ * =============================================================
++ *  Fichier    : page.tsx (powerbi)
++ *  Projet     : Kalami Données
++ *  Description: Accueil du parcours PL-300 : présentation, avancement de la rédaction,
++ *               puis les modules avec leurs leçons. Une leçon non rédigée reste visible
++ *               mais grisée, pour que la carte du parcours soit complète dès le départ.
++ *  Auteur     : Claude Marcel
++ *  Version    : 1.0
++ *  Date       : 2026-11-05
++ *  Dépendances: lib/powerbi/modules.ts, lib/auth/dal.ts, i18n
++ * =============================================================
++ */
++
++import Link from "next/link";
++
++import { BADGE, CARD, PANEL_SAND } from "@/components/ui/styles";
++import { getPowerbiDictionary } from "@/i18n/powerbi";
++import { interpolate } from "@/i18n";
++import { requireUser } from "@/lib/auth/dal";
++import { POWERBI_HOME } from "@/lib/auth/routes";
++import { aUnResume } from "@/lib/powerbi/lessons";
++import { getAvancement, MODULES, type Module } from "@/lib/powerbi/modules";
++
++const d = getPowerbiDictionary();
++
++export default async function PowerbiHomePage() {
++  await requireUser(POWERBI_HOME);
++  const { pretes, total } = getAvancement();
++
++  return (
++    <>
++      <header className="flex flex-col gap-3">
++        <h1 className="font-serif text-h1 font-semibold text-encre">{d.accueil.titre}</h1>
++        <p className="max-w-prose text-ink-muted">{d.accueil.intro}</p>
++        <p className="text-small text-ink-muted">
++          {interpolate(d.accueil.avancement, { pretes: String(pretes), total: String(total) })}
++        </p>
++      </header>
++
++      <section className="flex flex-col gap-4" aria-labelledby="modules">
++        <h2 id="modules" className="font-serif text-h2 font-semibold text-encre">
++          {d.accueil.modulesTitre}
++        </h2>
++        {MODULES.map((module) => (
++          <ModuleCard key={module.slug} module={module} />
++        ))}
++      </section>
++    </>
++  );
++}
++
++/** Un module et la liste de ses leçons. */
++function ModuleCard({ module }: { module: Module }) {
++  return (
++    <article className={`${CARD} p-5`}>
++      <header className="flex flex-col gap-2">
++        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
++          <h3 className="font-serif text-h3 font-semibold text-encre">
++            {module.rang}. {module.titre}
++          </h3>
++          <span className="text-small text-ink-muted">
++            {interpolate(d.accueil.lecons, { n: String(module.lecons.length) })}
++          </span>
++        </div>
++        <p className="max-w-prose text-small text-ink-muted">{module.resume}</p>
++      </header>
++
++      <ul className="mt-4 flex flex-col divide-y divide-line border-t border-line">
++        {module.lecons.map((lecon) => {
++          const minutes = interpolate(d.accueil.minutes, { n: String(lecon.minutes) });
++
++          if (!aUnResume(module.slug, lecon.slug)) {
++            return (
++              <li
++                key={lecon.slug}
++                className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-3 text-ink-muted"
++              >
++                <span className="font-medium">{lecon.titre}</span>
++                <span className={BADGE}>{d.accueil.aVenir}</span>
++                <span className="ml-auto text-caption">{minutes}</span>
++              </li>
++            );
++          }
++
++          return (
++            <li key={lecon.slug} className="py-3">
++              <Link
++                href={`${POWERBI_HOME}/${module.slug}/${lecon.slug}`}
++                className="flex flex-wrap items-baseline gap-x-3 gap-y-1 hover:underline"
++              >
++                <span className="font-medium text-encre">{lecon.titre}</span>
++                <span className="text-small text-ink-muted">{lecon.accroche}</span>
++                <span className="ml-auto text-caption text-ink-muted">{minutes}</span>
++              </Link>
++            </li>
++          );
++        })}
++      </ul>
++
++      {module.microsoftLearn && (
++        <p className={`${PANEL_SAND} mt-4 px-4 py-2 text-caption text-ink-muted`}>
++          <a
++            href={module.microsoftLearn}
++            target="_blank"
++            rel="noopener noreferrer"
++            className="hover:text-encre hover:underline"
++          >
++            {d.lecon.source}
++          </a>
++        </p>
++      )}
++    </article>
++  );
++}
+diff --git a/src/components/powerbi/lesson-blocks.tsx b/src/components/powerbi/lesson-blocks.tsx
+new file mode 100644
+index 0000000..7d38b55
+--- /dev/null
++++ b/src/components/powerbi/lesson-blocks.tsx
+@@ -0,0 +1,122 @@
++/**
++ * =============================================================
++ *  Fichier    : lesson-blocks.tsx
++ *  Projet     : Kalami Données
++ *  Description: Rendu des blocs de contenu d'une leçon : titres, paragraphes, listes,
++ *               tableaux, encadrés et code. Les encadrés portent trois tons — à retenir,
++ *               piège d'examen, moyen mnémotechnique — distingués par la couleur de leur
++ *               filet gauche autant que par leur intitulé, pour rester lisibles sans
++ *               dépendre de la seule couleur.
++ *  Auteur     : Claude Marcel
++ *  Version    : 1.0
++ *  Date       : 2026-11-05
++ *  Dépendances: lib/powerbi/content.ts, i18n
++ * =============================================================
++ */
++
++import { getPowerbiDictionary } from "@/i18n/powerbi";
++import type { ContentBlock, LessonContent, NoteTone } from "@/lib/powerbi/content";
++
++const d = getPowerbiDictionary();
++
++/** Filet gauche de chaque ton d'encadré. */
++const TON_BORDURE: Record<NoteTone, string> = {
++  info: "border-l-encre",
++  examen: "border-l-ocre",
++  memo: "border-l-ink-muted",
++};
++
++/** Intitulé par défaut de chaque ton. */
++const TON_TITRE: Record<NoteTone, string> = {
++  info: d.encadre.info,
++  examen: d.encadre.examen,
++  memo: d.encadre.memo,
++};
++
++/** Rend la suite des blocs d'une leçon. */
++export function LessonBlocks({ contenu }: { contenu: LessonContent }) {
++  return (
++    <div className="flex flex-col gap-5">
++      {contenu.map((bloc, index) => (
++        <Bloc key={index} bloc={bloc} />
++      ))}
++    </div>
++  );
++}
++
++/** Rend un bloc selon son type. */
++function Bloc({ bloc }: { bloc: ContentBlock }) {
++  switch (bloc.kind) {
++    case "titre":
++      return (
++        <h2 className="mt-2 font-serif text-h3 font-semibold text-encre">{bloc.texte}</h2>
++      );
++
++    case "paragraphe":
++      return <p className="max-w-prose">{bloc.texte}</p>;
++
++    case "liste": {
++      const classes = "max-w-prose flex flex-col gap-1 pl-5";
++      return bloc.ordonnee ? (
++        <ol className={`${classes} list-decimal`}>
++          {bloc.items.map((item, i) => (
++            <li key={i}>{item}</li>
++          ))}
++        </ol>
++      ) : (
++        <ul className={`${classes} list-disc`}>
++          {bloc.items.map((item, i) => (
++            <li key={i}>{item}</li>
++          ))}
++        </ul>
++      );
++    }
++
++    case "tableau":
++      return (
++        <div className="overflow-x-auto">
++          <table className="w-full border-collapse text-small">
++            <thead>
++              <tr className="border-b border-line text-left">
++                {bloc.entetes.map((entete, i) => (
++                  <th key={i} scope="col" className="py-2 pr-4 font-semibold text-encre">
++                    {entete}
++                  </th>
++                ))}
++              </tr>
++            </thead>
++            <tbody>
++              {bloc.lignes.map((ligne, i) => (
++                <tr key={i} className="border-b border-line align-top">
++                  {ligne.map((cellule, j) => (
++                    <td key={j} className="py-2 pr-4">
++                      {cellule}
++                    </td>
++                  ))}
++                </tr>
++              ))}
++            </tbody>
++          </table>
++        </div>
++      );
++
++    case "encadre":
++      return (
++        <aside
++          className={`max-w-prose border-l-4 bg-sand px-4 py-3 ${TON_BORDURE[bloc.ton]}`}
++        >
++          <p className="text-caption font-semibold uppercase text-ink-muted">
++            {bloc.titre ?? TON_TITRE[bloc.ton]}
++          </p>
++          <p className="mt-1">{bloc.texte}</p>
++        </aside>
++      );
++
++    case "code":
++      return (
++        <pre className="overflow-x-auto rounded-lg bg-encre px-4 py-3 text-small text-on-encre">
++          <code>{bloc.texte}</code>
++        </pre>
++      );
++  }
++}
+diff --git a/src/components/powerbi/powerbi-chrome.tsx b/src/components/powerbi/powerbi-chrome.tsx
+new file mode 100644
+index 0000000..5d54d38
+--- /dev/null
++++ b/src/components/powerbi/powerbi-chrome.tsx
+@@ -0,0 +1,119 @@
++/**
++ * =============================================================
++ *  Fichier    : powerbi-chrome.tsx
++ *  Projet     : Kalami Données
++ *  Description: En-tête et pied de page propres à Kalami Données : l'espace se suffit à
++ *               lui-même, connexion et déconnexion ramènent à /powerbi. Une pastille
++ *               rappelle que la section est privée pendant sa construction, et le pied
++ *               de page porte la mention d'absence d'affiliation avec Microsoft.
++ *  Auteur     : Claude Marcel
++ *  Version    : 1.0
++ *  Date       : 2026-11-05
++ *  Dépendances: lib/auth/dal.ts, lib/auth/actions.ts, lib/auth/routes.ts, i18n
++ * =============================================================
++ */
++
++import Image from "next/image";
++import Link from "next/link";
++import { Suspense } from "react";
++
++import { LegalLinks } from "@/components/legal/legal-links";
++import { BADGE, BUTTON_SECONDARY, BUTTON_TERTIARY } from "@/components/ui/styles";
++import { getDictionary, interpolate } from "@/i18n";
++import { getPowerbiDictionary } from "@/i18n/powerbi";
++import { signOut } from "@/lib/auth/actions";
++import { getCurrentUser } from "@/lib/auth/dal";
++import { authPath, POWERBI_HOME } from "@/lib/auth/routes";
++import { APP_NAME } from "@/lib/config";
++
++const t = getDictionary();
++const d = getPowerbiDictionary();
++
++// ==================== EN-TÊTE ====================
++
++/** En-tête de l'espace : marque, pastille « privé » et compte. */
++export function PowerbiHeader() {
++  return (
++    <header className="border-b border-line bg-paper">
++      <nav
++        aria-label={d.title}
++        className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4
++          py-3"
++      >
++        <Link
++          href={POWERBI_HOME}
++          className="inline-flex min-h-11 items-center gap-2 font-serif text-h3 font-semibold
++            text-encre"
++        >
++          <Image src="/brand/kalami-mark.svg" alt="" width={28} height={28} />
++          {d.title}
++        </Link>
++        <span className={BADGE} title={d.prive.explication}>
++          {d.prive.badge}
++        </span>
++        <div className="ml-auto">
++          {/* Session lue en flux : l'en-tête reste statique et instantané */}
++          <Suspense fallback={<PowerbiSignInLink />}>
++            <PowerbiUserMenu />
++          </Suspense>
++        </div>
++      </nav>
++    </header>
++  );
++}
++
++/** Lien de connexion qui ramène à l'espace. */
++function PowerbiSignInLink() {
++  return (
++    <Link href={authPath("connexion", POWERBI_HOME)} className={`${BUTTON_SECONDARY} px-4`}>
++      {d.nav.signIn}
++    </Link>
++  );
++}
++
++/** Nom de l'utilisateur et déconnexion (retour à l'accueil de l'espace). */
++async function PowerbiUserMenu() {
++  const user = await getCurrentUser();
++  if (!user) return <PowerbiSignInLink />;
++
++  return (
++    <form action={signOut} className="flex flex-wrap items-center gap-x-3">
++      <input type="hidden" name="suivant" value={POWERBI_HOME} />
++      {user.email && (
++        <span className="text-small text-ink-muted">
++          {interpolate(d.nav.signedInAs, { name: user.email })}
++        </span>
++      )}
++      <Link href="/compte" className={BUTTON_TERTIARY}>
++        {t.account.title}
++      </Link>
++      <button type="submit" className={BUTTON_TERTIARY}>
++        {d.nav.signOut}
++      </button>
++    </form>
++  );
++}
++
++// ==================== PIED DE PAGE ====================
++
++/** Pied de page sobre, avec la mention d'absence d'affiliation. */
++export function PowerbiFooter() {
++  return (
++    <footer className="mt-16 border-t border-line">
++      <div
++        className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-6 text-small
++          text-ink-muted"
++      >
++        <div className="flex flex-wrap items-center justify-between gap-3">
++          <p>
++            © {APP_NAME}. {d.footer.tagline}
++          </p>
++          <nav aria-label={t.footer.legal} className="flex flex-wrap gap-x-4 gap-y-1">
++            <LegalLinks space="site" linkClassName="hover:text-encre hover:underline" />
++          </nav>
++        </div>
++        <p className="text-caption">{d.footer.avertissement}</p>
++      </div>
++    </footer>
++  );
++}
+diff --git a/src/i18n/fr-powerbi.ts b/src/i18n/fr-powerbi.ts
+new file mode 100644
+index 0000000..0920b78
+--- /dev/null
++++ b/src/i18n/fr-powerbi.ts
+@@ -0,0 +1,73 @@
++/**
++ * =============================================================
++ *  Fichier    : fr-powerbi.ts
++ *  Projet     : Kalami Données
++ *  Description: Textes français de l'espace de préparation à la certification Microsoft
++ *               PL-300 : navigation, accueil, liste des modules, page de leçon et
++ *               mentions du parcours. Lus via getPowerbiDictionary() (powerbi.ts).
++ *  Auteur     : Claude Marcel
++ *  Version    : 1.0
++ *  Date       : 2026-11-05
++ * =============================================================
++ */
++
++const powerbiFr = {
++  name: "Données",
++  title: "Kalami Données",
++  description:
++    "Préparation à la certification Microsoft PL-300 : des résumés structurés de chaque " +
++    "leçon officielle, et un chantier pratique mené sur une vraie base de données.",
++
++  nav: {
++    home: "Le parcours",
++    workshop: "Le chantier",
++    signIn: "Se connecter",
++    signOut: "Se déconnecter",
++    signedInAs: "{name}",
++  },
++
++  accueil: {
++    titre: "Préparer le PL-300, une leçon à la fois",
++    intro:
++      "Chaque leçon du parcours officiel Microsoft, résumée pour la compréhension : " +
++      "l'idée centrale d'abord, puis les détails que l'examen vérifie. Le lien vers la " +
++      "page d'origine reste visible pour pouvoir y revenir.",
++    avancement: "{pretes} leçons rédigées sur {total}",
++    modulesTitre: "Les modules",
++    lireLecon: "Lire",
++    aVenir: "À venir",
++    minutes: "{n} min",
++    lecons: "{n} leçons",
++  },
++
++  lecon: {
++    retour: "Retour au parcours",
++    source: "Page officielle Microsoft Learn",
++    precedente: "Leçon précédente",
++    suivante: "Leçon suivante",
++    nonRedigee: "Cette leçon n'est pas encore rédigée.",
++    nonRedigeeAide:
++      "Le résumé sera ajouté au fil de la progression dans le parcours. En attendant, " +
++      "la page officielle reste accessible ci-dessous.",
++  },
++
++  encadre: {
++    info: "À retenir",
++    examen: "À l'examen",
++    memo: "Pour retenir",
++  },
++
++  prive: {
++    badge: "Espace privé",
++    explication: "Section en construction, réservée aux comptes invités.",
++  },
++
++  footer: {
++    tagline: "Préparation à la certification Microsoft PL-300.",
++    avertissement:
++      "Parcours personnel de révision. Sans affiliation avec Microsoft ; PL-300 et " +
++      "Power BI sont des marques de Microsoft Corporation.",
++  },
++} as const;
++
++export default powerbiFr;
+diff --git a/src/i18n/powerbi.ts b/src/i18n/powerbi.ts
+new file mode 100644
+index 0000000..fd771dd
+--- /dev/null
++++ b/src/i18n/powerbi.ts
+@@ -0,0 +1,22 @@
++/**
++ * =============================================================
++ *  Fichier    : powerbi.ts
++ *  Projet     : Kalami Données
++ *  Description: Accès aux textes de Kalami Données, séparés du dictionnaire principal
++ *               pour que les pages de la librairie ne les téléchargent pas.
++ *  Auteur     : Claude Marcel
++ *  Version    : 1.0
++ *  Date       : 2026-11-05
++ *  Dépendances: fr-powerbi.ts
++ * =============================================================
++ */
++
++import powerbiFr from "./fr-powerbi";
++
++/** Structure des textes de Kalami Données. */
++export type PowerbiDictionary = typeof powerbiFr;
++
++/** Retourne les textes de Kalami Données (français). */
++export function getPowerbiDictionary(): PowerbiDictionary {
++  return powerbiFr;
++}
+diff --git a/src/lib/auth/routes.ts b/src/lib/auth/routes.ts
+index b4ba69d..5655fb1 100644
+--- a/src/lib/auth/routes.ts
++++ b/src/lib/auth/routes.ts
+@@ -20,6 +20,8 @@ export const PROTECTED_PREFIXES = [
+   "/strategie/nouvelle",
+   "/strategie/invitation",
+   "/strategie/compte",
++  // Kalami Données reste entièrement privé pendant sa construction
++  "/powerbi",
+ ] as const;
+ 
+ /** Vrai si le chemin exige une connexion. */
+@@ -43,6 +45,9 @@ export function safeNextPath(next: string | null | undefined, fallback = "/"): s
+ /** Accueil de Kalami Stratégie : ses pages de connexion vivent sous ce préfixe. */
+ export const STRATEGY_HOME = "/strategie";
+ 
++/** Accueil de Kalami Données (préparation PL-300). */
++export const POWERBI_HOME = "/powerbi";
++
+ /** Pages de connexion, présentes sur le site et dans Kalami Stratégie. */
+ const AUTH_PAGES = [
+   "connexion",
+diff --git a/src/lib/powerbi/content.ts b/src/lib/powerbi/content.ts
+new file mode 100644
+index 0000000..f2a5954
+--- /dev/null
++++ b/src/lib/powerbi/content.ts
+@@ -0,0 +1,103 @@
++/**
++ * =============================================================
++ *  Fichier    : content.ts
++ *  Projet     : Kalami Données
++ *  Description: Blocs de contenu d'une leçon : titres, paragraphes, listes, tableaux,
++ *               encadrés et code. Les leçons sont écrites en TypeScript plutôt qu'en
++ *               Markdown pour rester typées, relues en revue de code et versionnées
++ *               avec le reste du dépôt, sans ajouter de dépendance de rendu.
++ *  Auteur     : Claude Marcel
++ *  Version    : 1.0
++ *  Date       : 2026-11-05
++ * =============================================================
++ */
++
++/** Ton d'un encadré : information, piège d'examen ou astuce de mémorisation. */
++export type NoteTone = "info" | "examen" | "memo";
++
++/** Titre intermédiaire à l'intérieur d'une leçon. */
++export type HeadingBlock = { kind: "titre"; texte: string };
++
++/** Paragraphe de texte courant. */
++export type ParagraphBlock = { kind: "paragraphe"; texte: string };
++
++/** Liste à puces ou numérotée. */
++export type ListBlock = { kind: "liste"; ordonnee?: boolean; items: string[] };
++
++/** Tableau à en-tête : chaque ligne doit avoir autant de cellules que d'en-têtes. */
++export type TableBlock = { kind: "tableau"; entetes: string[]; lignes: string[][] };
++
++/** Encadré mis en valeur : concept clé, piège d'examen ou moyen mnémotechnique. */
++export type NoteBlock = { kind: "encadre"; ton: NoteTone; titre?: string; texte: string };
++
++/** Extrait de code ou de formule, affiché en police à chasse fixe. */
++export type CodeBlock = { kind: "code"; langage?: string; texte: string };
++
++/** Un bloc de contenu, quel que soit son type. */
++export type ContentBlock =
++  | HeadingBlock
++  | ParagraphBlock
++  | ListBlock
++  | TableBlock
++  | NoteBlock
++  | CodeBlock;
++
++/** Contenu complet d'une leçon. */
++export type LessonContent = ContentBlock[];
++
++// ==================== FABRIQUES ====================
++// Raccourcis d'écriture : une leçon se lit comme une suite d'appels courts.
++
++/** Titre intermédiaire. */
++export const titre = (texte: string): HeadingBlock => ({ kind: "titre", texte });
++
++/** Paragraphe. */
++export const p = (texte: string): ParagraphBlock => ({ kind: "paragraphe", texte });
++
++/** Liste à puces. */
++export const liste = (...items: string[]): ListBlock => ({ kind: "liste", items });
++
++/** Liste numérotée, pour une marche à suivre. */
++export const etapes = (...items: string[]): ListBlock => ({
++  kind: "liste",
++  ordonnee: true,
++  items,
++});
++
++/** Tableau à en-tête. */
++export const tableau = (entetes: string[], lignes: string[][]): TableBlock => ({
++  kind: "tableau",
++  entetes,
++  lignes,
++});
++
++/** Encadré d'information. */
++export const note = (texte: string, titreEncadre?: string): NoteBlock => ({
++  kind: "encadre",
++  ton: "info",
++  titre: titreEncadre,
++  texte,
++});
++
++/** Encadré « piège d'examen ». */
++export const examen = (texte: string): NoteBlock => ({
++  kind: "encadre",
++  ton: "examen",
++  titre: "À l'examen",
++  texte,
++});
++
++/** Encadré « moyen mnémotechnique ». */
++export const memo = (texte: string): NoteBlock => ({
++  kind: "encadre",
++  ton: "memo",
++  titre: "Pour retenir",
++  texte,
++});
++
++/** Extrait de code. */
++export const code = (texte: string, langage?: string): CodeBlock => ({
++  kind: "code",
++  langage,
++  texte,
++});
+diff --git a/src/lib/powerbi/lessons/framework-de-modele/fondements-du-modele.ts b/src/lib/powerbi/lessons/framework-de-modele/fondements-du-modele.ts
+new file mode 100644
+index 0000000..44b1223
+--- /dev/null
++++ b/src/lib/powerbi/lessons/framework-de-modele/fondements-du-modele.ts
+@@ -0,0 +1,168 @@
++/**
++ * =============================================================
++ *  Fichier    : fondements-du-modele.ts (framework-de-modele)
++ *  Projet     : Kalami Données
++ *  Description: Résumé de la leçon « Les fondements du modèle Power BI » : les sept
++ *               termes qui préparent le choix d'un framework, de la requête analytique
++ *               au schéma en étoile.
++ *  Auteur     : Claude Marcel
++ *  Version    : 1.0
++ *  Date       : 2026-11-05
++ * =============================================================
++ */
++
++import { examen, memo, note, p, tableau, titre, type LessonContent } from "@/lib/powerbi/content";
++
++const contenu: LessonContent = [
++  titre("L'idée centrale"),
++  p(
++    "Sept termes, et ils s'empilent comme les barreaux d'une échelle. Impossible de choisir un " +
++      "framework sans savoir ce qu'est un modèle, ce qui l'interroge, et comment ses tables sont " +
++      "stockées.",
++  ),
++  memo(
++    "L'échelle, de bas en haut : modèle de données, dataset, requête analytique, modèle " +
++      "tabulaire, schéma en étoile, mode de stockage, framework. Chaque barreau s'appuie sur le " +
++      "précédent.",
++  ),
++
++  titre("1. Modèle de données"),
++  p("Une ressource de données interrogeable, optimisée pour l'analytique."),
++  tableau(
++    ["Langage", "Qui l'utilise"],
++    [
++      ["DAX (Data Analysis Expressions)", "Power BI"],
++      ["MDX (Multidimensional Expressions)", "Analyser dans Excel"],
++      ["L'un ou l'autre", "Rapports paginés"],
++    ],
++  ),
++  note(
++    "Modèle de données, modèle sémantique (surtout en contexte d'entreprise) et simplement " +
++      "modèle désignent la même chose.",
++  ),
++
++  titre("2. Dataset Power BI"),
++  p(
++    "Le même modèle, après publication. Développé dans Power BI Desktop, il devient un dataset " +
++      "une fois publié dans un espace de travail du service Power BI : un artefact qui sert de " +
++      "source de données aux visualisations.",
++  ),
++  examen(
++    "Tous les datasets ne viennent pas de Power BI Desktop. Certains représentent des " +
++      "connexions à des modèles hébergés dans AAS ou SSAS, d'autres des structures en temps réel " +
++      "— push, streaming, hybrid datasets.",
++  ),
++  memo(
++    "Modèle = le plan sur ta machine. Dataset = la même chose, publiée et partageable. Un seul " +
++      "objet, deux noms selon l'endroit où il vit.",
++  ),
++
++  titre("3. Requête analytique"),
++  p(
++    "Quand Power BI visualise des données, il prépare et envoie une requête analytique, qui " +
++      "produit un résultat facile à comprendre pour une personne. Elle comporte trois phases, " +
++      "exécutées dans cet ordre.",
++  ),
++  tableau(
++    ["Phase", "Aussi appelée", "Visible dans le résultat ?"],
++    [
++      ["1. Filtrer", "Slicing (découpage)", "Non"],
++      ["2. Grouper", "Dicing", "Oui"],
++      ["3. Résumer", "—", "Oui, la valeur"],
++    ],
++  ),
++  p(
++    "Le filtrage restreint à un sous-ensemble : filtres de rapport, de page ou de visuel, " +
++      "segments, sécurité au niveau des lignes, ou mesures. Le groupement divise le résultat, et " +
++      "chaque groupe est lui aussi un filtre — mais ses valeurs, elles, sont visibles. Le résumé " +
++      "produit une valeur unique, par agrégation d'une colonne ou par une mesure DAX.",
++  ),
++  p(
++    "L'exemple du cours : un segment réglé sur 2021 filtre, les colonnes des quatre trimestres " +
++      "groupent, et la hauteur de chaque colonne résume les ventes du trimestre.",
++  ),
++  examen(
++    "F-G-R, dans cet ordre. La distinction testée : les valeurs de filtre ne sont pas visibles " +
++      "dans le résultat, celles de groupe le sont. Un segment est un filtre ; un axe est un groupe.",
++  ),
++
++  titre("4. Modèle tabulaire"),
++  p(
++    "Un modèle Power BI est un modèle tabulaire : une ou plusieurs tables de colonnes, pouvant " +
++      "aussi contenir relations, hiérarchies et calculs. C'est pour cette raison que la connexion " +
++      "active fonctionne entre Power BI et Azure Analysis Services : même moteur.",
++  ),
++
++  titre("5. Conception en schéma en étoile"),
++  p(
++    "La façon recommandée de produire un modèle tabulaire optimisé. Elle exige de classer chaque " +
++      "table dans l'une de deux catégories.",
++  ),
++  tableau(
++    ["Type", "Contient", "Exemples"],
++    [
++      [
++        "Dimension",
++        "Des entités métier — les choses que l'on modélise",
++        "Produits, personnes, lieux, et le temps lui-même",
++      ],
++      [
++        "Fait",
++        "Des observations ou événements",
++        "Commandes, soldes de stock, taux de change, relevés",
++      ],
++    ],
++  ),
++  p(
++    "Une table de faits contient des colonnes de clés de dimension et des colonnes de mesures " +
++      "numériques. Elle occupe le centre de l'étoile ; les dimensions en forment les branches.",
++  ),
++  note(
++    "Dans une requête analytique, les colonnes de dimension filtrent ou groupent, et les " +
++      "colonnes de faits sont résumées. Cette seule phrase explique toute la conception : le " +
++      "schéma en étoile n'est pas esthétique, il épouse le fonctionnement des requêtes.",
++  ),
++  memo("Les dimensions décrivent, les faits mesurent. Selon quoi ? Combien ?"),
++
++  titre("6. Mode de stockage des tables"),
++  p(
++    "Chaque table du modèle possède une propriété de mode de stockage, qui détermine si ses " +
++      "données sont stockées dans le modèle.",
++  ),
++  tableau(
++    ["Mode", "Comportement"],
++    [
++      ["Import", "Les requêtes lisent les données mises en cache dans le modèle"],
++      ["DirectQuery", "Les requêtes passent à travers vers la source"],
++      [
++        "Dual",
++        "L'un ou l'autre : Power BI choisit le plan le plus efficace, en privilégiant le cache",
++      ],
++    ],
++  ),
++  examen(
++    "Les tables calculées font exception : elles n'ont pas de propriété de mode de stockage, " +
++      "puisqu'elles sont calculées dans le modèle.",
++  ),
++
++  titre("7. Framework de modèle"),
++  p("Les réglages de mode de stockage déterminent le framework."),
++  tableau(
++    ["Framework", "Définition"],
++    [
++      ["Modèle d'importation", "Toutes les tables en mode Import"],
++      ["Modèle DirectQuery", "Toutes les tables en DirectQuery, dans le même groupe de sources"],
++      ["Modèle composite", "Plus d'un groupe de sources"],
++    ],
++  ),
++  memo(
++    "On ne choisit pas un framework dans un menu : on règle les modes de stockage table par " +
++      "table, et le framework en découle.",
++  ),
++  note(
++    "La notion de groupe de sources est introduite ici sans être définie — le module l'explique " +
++      "plus loin. C'est elle qui rend un modèle composite composite.",
++  ),
++];
++
++export default contenu;
+diff --git a/src/lib/powerbi/lessons/framework-de-modele/introduction.ts b/src/lib/powerbi/lessons/framework-de-modele/introduction.ts
+new file mode 100644
+index 0000000..0cab11c
+--- /dev/null
++++ b/src/lib/powerbi/lessons/framework-de-modele/introduction.ts
+@@ -0,0 +1,73 @@
++/**
++ * =============================================================
++ *  Fichier    : introduction.ts (framework-de-modele)
++ *  Projet     : Kalami Données
++ *  Description: Résumé de la leçon « Introduction » du module « Choisir un framework de
++ *               modèle » : la filiation avec Analysis Services, et l'annonce des trois
++ *               frameworks.
++ *  Auteur     : Claude Marcel
++ *  Version    : 1.0
++ *  Date       : 2026-11-05
++ * =============================================================
++ */
++
++import { etapes, memo, note, p, tableau, titre, type LessonContent } from "@/lib/powerbi/content";
++
++const contenu: LessonContent = [
++  titre("L'idée centrale"),
++  p(
++    "Une section courte, mais qui annonce une chose importante : le moteur de modélisation " +
++      "de Power BI n'est ni récent ni léger. C'est la même technologie mature qui anime Azure " +
++      "Analysis Services et SQL Server Analysis Services, fruit de plus de deux décennies " +
++      "d'investissement de Microsoft dans la BI d'entreprise.",
++  ),
++  memo(
++    "Power BI Desktop ressemble à une application de bureau, mais sous le capot se trouve un " +
++      "moteur d'entreprise. Une voiture familiale avec un moteur de course : le tableau de bord " +
++      "est accueillant, la mécanique est sérieuse.",
++  ),
++
++  titre("Un seul outil, plusieurs frameworks"),
++  p(
++    "Power BI offre un choix au moment de concevoir le modèle. Ces frameworks existent pour " +
++      "offrir une performance rapide, des résultats en quasi temps réel, ou les deux.",
++  ),
++  note(
++    "Ce dernier mot porte tout l'arc du module : deux frameworks donnent chacun l'un de ces " +
++      "avantages, et un troisième tente de donner les deux.",
++  ),
++
++  titre("Ce que le module couvre"),
++  tableau(
++    ["Quoi", "Objectif"],
++    [
++      ["Les frameworks", "Ce qu'est chacun d'eux"],
++      ["Leurs avantages et limites", "Des compromis, pas seulement des fonctionnalités"],
++      ["Les fonctions d'optimisation", "Faire performer chaque framework"],
++      ["Les conseils pour choisir", "La décision elle-même"],
++    ],
++  ),
++  note(
++    "Le cadrage annonce « avantages et limites ». C'est un module sur les compromis : il n'y a " +
++      "pas de meilleur framework, seulement celui qui convient à un ensemble de contraintes.",
++  ),
++
++  titre("Les cinq objectifs"),
++  etapes(
++    "Décrire les fondements du modèle Power BI",
++    "Déterminer quand développer un modèle d'importation",
++    "Déterminer quand développer un modèle DirectQuery",
++    "Déterminer quand développer un modèle composite",
++    "Choisir le framework approprié",
++  ),
++  {
++    kind: "encadre",
++    ton: "examen",
++    texte:
++      "Les objectifs 2, 3 et 4 commencent tous par « déterminer quand », pas par « comment " +
++      "construire ». L'examen donne un scénario et demande quel framework convient : mémorise " +
++      "les conditions, pas les chemins de clics.",
++  },
++];
++
++export default contenu;
+diff --git a/src/lib/powerbi/lessons/index.ts b/src/lib/powerbi/lessons/index.ts
+new file mode 100644
+index 0000000..77d1745
+--- /dev/null
++++ b/src/lib/powerbi/lessons/index.ts
+@@ -0,0 +1,50 @@
++/**
++ * =============================================================
++ *  Fichier    : index.ts (lessons)
++ *  Projet     : Kalami Données
++ *  Description: Registre des résumés de leçons. Chaque entrée charge son fichier à la
++ *               demande, pour qu'une page de leçon ne télécharge que son propre texte.
++ *               Une leçon absente du registre s'affiche comme « à venir » : c'est ce
++ *               registre, et non la carte du parcours, qui fait foi.
++ *  Auteur     : Claude Marcel
++ *  Version    : 1.0
++ *  Date       : 2026-11-05
++ *  Dépendances: lib/powerbi/content.ts
++ * =============================================================
++ */
++
++import type { LessonContent } from "@/lib/powerbi/content";
++
++/** Clé d'une leçon : « module/lecon ». */
++type LessonKey = `${string}/${string}`;
++
++/** Chargeurs des résumés, par clé de leçon. */
++const RESUMES: Partial<Record<LessonKey, () => Promise<{ default: LessonContent }>>> = {
++  "framework-de-modele/introduction": () => import("./framework-de-modele/introduction"),
++  "framework-de-modele/fondements-du-modele": () =>
++    import("./framework-de-modele/fondements-du-modele"),
++  "nettoyer-transformer/editeur-avance": () => import("./nettoyer-transformer/editeur-avance"),
++  "nettoyer-transformer/profiler-les-donnees": () =>
++    import("./nettoyer-transformer/profiler-les-donnees"),
++};
++
++/** Vrai si le résumé de cette leçon est écrit. */
++export function aUnResume(moduleSlug: string, lessonSlug: string): boolean {
++  return `${moduleSlug}/${lessonSlug}` in RESUMES;
++}
++
++/** Charge le résumé d'une leçon, ou null s'il n'est pas encore écrit. */
++export async function getResume(
++  moduleSlug: string,
++  lessonSlug: string,
++): Promise<LessonContent | null> {
++  const charger = RESUMES[`${moduleSlug}/${lessonSlug}`];
++  if (!charger) return null;
++  const charge = await charger();
++  return charge.default;
++}
++
++/** Nombre de résumés écrits. */
++export function compterResumes(): number {
++  return Object.keys(RESUMES).length;
++}
+diff --git a/src/lib/powerbi/lessons/nettoyer-transformer/editeur-avance.ts b/src/lib/powerbi/lessons/nettoyer-transformer/editeur-avance.ts
+new file mode 100644
+index 0000000..1679c6e
+--- /dev/null
++++ b/src/lib/powerbi/lessons/nettoyer-transformer/editeur-avance.ts
+@@ -0,0 +1,90 @@
++/**
++ * =============================================================
++ *  Fichier    : editeur-avance.ts (nettoyer-transformer)
++ *  Projet     : Kalami Données
++ *  Description: Résumé de la leçon « L'Éditeur avancé et le code M » : la structure
++ *               let / in, la lecture du code généré, et le risque du réordonnancement.
++ *  Auteur     : Claude Marcel
++ *  Version    : 1.0
++ *  Date       : 2026-11-05
++ * =============================================================
++ */
++
++import {
++  code,
++  examen,
++  liste,
++  memo,
++  note,
++  p,
++  tableau,
++  titre,
++  type LessonContent,
++} from "@/lib/powerbi/content";
++
++const contenu: LessonContent = [
++  titre("L'idée centrale"),
++  p(
++    "La section la plus courte du module, et celle qui lève le rideau. Chaque clic fait dans " +
++      "Power Query écrit du code à notre insu. C'est ici qu'on peut le lire.",
++  ),
++  memo(
++    "L'interface de Power Query est un enregistreur de macros : on fait les actions, il écrit le " +
++      "script. L'Éditeur avancé est simplement la fenêtre du script.",
++  ),
++
++  titre("Le M est toujours là"),
++  tableau(
++    ["Affirmation", "Implication"],
++    [
++      ["Le langage M est toujours lisible et modifiable", "Rien n'est caché"],
++      ["Son usage n'est pas obligatoire", "L'interface suffit pour l'essentiel"],
++      ["On en écrit rarement, mais ça peut servir", "Savoir le lire, en écrire à l'occasion"],
++    ],
++  ),
++  note(
++    "L'angle pédagogique souligné par Microsoft : puisque chaque étape est écrite en M, qu'on " +
++      "l'ait écrite ou non, ces étapes servent à apprendre le langage. L'interface est le " +
++      "professeur.",
++  ),
++  examen(
++    "M n'est pas DAX. Le M vit dans Power Query et transforme les données avant le chargement ; " +
++      "le DAX vit dans le modèle et calcule après. Deux langages, deux moments, deux fenêtres.",
++  ),
++
++  titre("Comment l'ouvrir"),
++  p(
++    "Ruban Affichage, puis Éditeur avancé — le même ruban que les outils de profilage, pas " +
++      "Accueil ni Transformer.",
++  ),
++
++  titre("Comment lire du code M"),
++  p(
++    "Chaque étape de Power Query correspond grosso modo à une ou deux lignes de code M. Nul " +
++      "besoin d'être expert pour le lire, et on peut même expérimenter en le modifiant : changer " +
++      "le nom d'une base de données, par exemple, puis valider par Terminé.",
++  ),
++
++  titre("La structure"),
++  code(
++    `let
++    Source = ...,
++    #"Colonnes supprimées" = Table.RemoveColumns(Source, {...}),
++    #"Lignes filtrées" = Table.SelectRows(#"Colonnes supprimées", each ...)
++in
++    #"Lignes filtrées"`,
++    "m",
++  ),
++  liste(
++    "Le M s'écrit de haut en bas : chaque étape référence la précédente par le nom placé à gauche du signe égal.",
++    "Réordonner est dangereux : cela peut ruiner les dépendances entre instructions.",
++    "L'instruction in désigne le résultat à renvoyer, presque toujours la dernière étape.",
++  ),
++  memo(
++    "Le M est une course de relais : chaque ligne prend le témoin de celle qu'elle nomme. " +
++      "Intervertir deux coureurs envoie le témoin vers quelqu'un qui n'a pas encore couru — la " +
++      "chaîne casse.",
++  ),
++];
++
++export default contenu;
+diff --git a/src/lib/powerbi/lessons/nettoyer-transformer/profiler-les-donnees.ts b/src/lib/powerbi/lessons/nettoyer-transformer/profiler-les-donnees.ts
+new file mode 100644
+index 0000000..2bbc3c8
+--- /dev/null
++++ b/src/lib/powerbi/lessons/nettoyer-transformer/profiler-les-donnees.ts
+@@ -0,0 +1,104 @@
++/**
++ * =============================================================
++ *  Fichier    : profiler-les-donnees.ts (nettoyer-transformer)
++ *  Projet     : Kalami Données
++ *  Description: Résumé de la leçon « Profiler les données » : qualité, distribution et
++ *               profil de colonne, la distinction entre valeurs distinctes et uniques,
++ *               et le piège des mille premières lignes.
++ *  Auteur     : Claude Marcel
++ *  Version    : 1.0
++ *  Date       : 2026-11-05
++ * =============================================================
++ */
++
++import { examen, liste, memo, note, p, tableau, titre, type LessonContent } from "@/lib/powerbi/content";
++
++const contenu: LessonContent = [
++  titre("L'idée centrale"),
++  p(
++    "La section la plus investigatrice du module. Toutes les autres supposaient qu'on savait " +
++      "déjà ce qui clochait dans les données ; le profilage, c'est comment le découvrir.",
++  ),
++  memo(
++    "Un bilan de santé pour les données : on n'attend pas les symptômes, on passe les tests " +
++      "d'abord. Tension artérielle, courbe de distribution, bilan sanguin complet.",
++  ),
++  p(
++    "Profiler, c'est étudier les nuances des données : déterminer les anomalies, examiner les " +
++      "structures sous-jacentes, et interroger les statistiques — nombre de lignes, distribution " +
++      "des valeurs, minimums et maximums, moyennes.",
++  ),
++
++  titre("Examiner les structures : l'onglet Modèle"),
++  p(
++    "Avant d'examiner les données dans Power Query, on apprend d'abord les structures " +
++      "sous-jacentes sous l'onglet Modèle : propriétés des colonnes et des tables, bouton " +
++      "Transformer les données, et Gérer les relations.",
++  ),
++
++  titre("Activer les outils"),
++  p("Éditeur Power Query, ruban Affichage, section Aperçu des données. Trois options à cocher."),
++  tableau(
++    ["Option", "Ce qu'elle affiche"],
++    [
++      ["Qualité de la colonne", "Pourcentages de valeurs valides, en erreur et vides"],
++      ["Distribution de la colonne", "La distribution, plus les décomptes distinctes et uniques"],
++      ["Profil de colonne", "Statistiques détaillées et graphique de distribution des valeurs"],
++    ],
++  ),
++  examen(
++    "Par défaut, Power Query n'examine que les 1 000 premières lignes. Pour changer : cliquer " +
++      "sur l'état du profilage dans la barre d'état, puis « Profilage de colonne basé sur " +
++      "l'ensemble du jeu de données ». C'est le même chiffre que la détection automatique des " +
++      "types, et le même piège : un échantillon peut induire en erreur.",
++  ),
++
++  titre("Qualité de la colonne"),
++  p("L'objectif énoncé clairement : dans une situation idéale, 100 % des données sont valides."),
++
++  titre("Distribution : distinctes contre uniques"),
++  tableau(
++    ["Décompte", "Inclut", "Définition"],
++    [
++      ["Distinctes", "Doublons et nulls", "Toutes les valeurs différentes d'une colonne"],
++      ["Uniques", "Ni doublons ni nulls", "Les valeurs qui n'apparaissent qu'une seule fois"],
++    ],
++  ),
++  p(
++    "Sur la colonne A, A, B, C, null : quatre valeurs distinctes (A, B, C, null) et deux uniques " +
++      "(B et C — A se répète, null est exclu).",
++  ),
++  memo(
++    "Distinctes = les valeurs Différentes qui existent. Uniques = celles employées Une seule " +
++      "fois. Distinctes est donc toujours supérieur ou égal à uniques.",
++  ),
++
++  titre("Profil de colonne"),
++  p("Deux moitiés. D'abord les statistiques de colonne."),
++  liste(
++    "Nombre de lignes — vérifie que l'import a réussi : cent lignes à la source, cent lignes importées.",
++    "Valeurs aberrantes, lignes et chaînes vides.",
++    "Minimum et maximum — sur du texte, ce sont la première et la dernière valeur dans l'ordre alphabétique.",
++    "Sur une colonne numérique seulement : zéros, nulls, moyenne, écart-type, valeurs paires et impaires.",
++  ),
++  p(
++    "Ensuite le graphique de distribution des valeurs, qui donne le décompte de chaque valeur " +
++      "distincte. Une valeur qui apparaît bien plus souvent que les autres indique où commencer " +
++      "l'investigation.",
++  ),
++
++  titre("L'histoire qui justifie le profilage"),
++  p(
++    "En parcourant des données de factures, on remarque que quelques vendeurs apparaissent " +
++      "exactement le même nombre de fois. Le même motif se retrouve dans la colonne Profit, puis " +
++      "dans d'autres tables. L'investigation révèle des données erronées qui devaient être " +
++      "actualisées.",
++  ),
++  note(
++    "Sans ce graphique, l'erreur n'aurait pas été vue aussi vite. Une distribution suspectement " +
++      "régulière est l'équivalent d'une empreinte au mauvais endroit : les données réelles sont " +
++      "inégales, et quand c'est trop propre, quelque chose d'artificiel s'est produit.",
++  ),
++];
++
++export default contenu;
+diff --git a/src/lib/powerbi/modules.ts b/src/lib/powerbi/modules.ts
+new file mode 100644
+index 0000000..a1df9d1
+--- /dev/null
++++ b/src/lib/powerbi/modules.ts
+@@ -0,0 +1,305 @@
++/**
++ * =============================================================
++ *  Fichier    : modules.ts
++ *  Projet     : Kalami Données
++ *  Description: Carte du parcours de préparation à la certification Microsoft PL-300 :
++ *               modules, leçons, durées et lien vers la page officielle Microsoft Learn
++ *               de chaque leçon. Ne contient que la structure ; le texte des leçons vit
++ *               dans lessons/ et les questions dans quiz/.
++ *  Auteur     : Claude Marcel
++ *  Version    : 1.0
++ *  Date       : 2026-11-05
++ *  Dépendances: lessons/index.ts (registre des résumés écrits)
++ * =============================================================
++ */
++
++/** Une leçon : une page de Microsoft Learn, résumée. */
++export interface Lesson {
++  /** Identifiant dans l'adresse, unique au sein du module. */
++  slug: string;
++  /** Titre affiché. */
++  titre: string;
++  /** Une phrase sur ce que la leçon apporte, montrée dans la liste. */
++  accroche: string;
++  /** Durée annoncée par Microsoft Learn, en minutes. */
++  minutes: number;
++  /** Page officielle correspondante (version française du site). */
++  microsoftLearn?: string;
++}
++
++/** Un module : une unité de Microsoft Learn, ou un atelier maison. */
++export interface Module {
++  slug: string;
++  /** Rang dans le parcours, affiché devant le titre. */
++  rang: number;
++  titre: string;
++  /** Deux ou trois lignes sur ce que le module couvre. */
++  resume: string;
++  /** Page officielle du module. */
++  microsoftLearn?: string;
++  /** Un atelier n'est pas un module Microsoft : il s'affiche à part. */
++  atelier?: boolean;
++  lecons: Lesson[];
++}
++
++import { compterResumes } from "@/lib/powerbi/lessons";
++
++const LEARN = "https://learn.microsoft.com/fr-ca/training/modules";
++
++// ==================== PARCOURS ====================
++
++/** Les modules du parcours, dans l'ordre où ils sont suivis. */
++export const MODULES: Module[] = [
++  {
++    slug: "fabric",
++    rang: 1,
++    titre: "Découvrir Microsoft Fabric",
++    resume:
++      "Le socle sur lequel Power BI s'appuie désormais : un stockage unique (OneLake), " +
++      "des espaces de travail, et les rôles qui collaborent autour des mêmes données.",
++    microsoftLearn: `${LEARN}/introduction-end-analytics-microsoft-fabric/`,
++    lecons: [
++      {
++        slug: "analytique-de-bout-en-bout",
++        titre: "L'analytique de bout en bout avec Fabric",
++        accroche: "OneLake, raccourcis, espaces de travail et gouvernance centralisée.",
++        minutes: 7,
++        microsoftLearn: `${LEARN}/introduction-end-analytics-microsoft-fabric/2-explore-end-to-end-analytics`,
++      },
++      {
++        slug: "equipes-de-donnees",
++        titre: "Les équipes de données et Fabric",
++        accroche: "Qui fait quoi, et pourquoi le mode Direct Lake change le travail de l'analyste.",
++        minutes: 4,
++        microsoftLearn: `${LEARN}/introduction-end-analytics-microsoft-fabric/3-explore-data-teams-microsoft-fabric`,
++      },
++      {
++        slug: "activer-et-utiliser-fabric",
++        titre: "Activer et utiliser Fabric",
++        accroche: "Rôles d'administration, charges de travail, catalogue OneLake et couche IA.",
++        minutes: 7,
++        microsoftLearn: `${LEARN}/introduction-end-analytics-microsoft-fabric/4-enable-use-microsoft-fabric`,
++      },
++    ],
++  },
++  {
++    slug: "obtenir-les-donnees",
++    rang: 2,
++    titre: "Obtenir les données dans Power BI",
++    resume:
++      "Quatre familles de sources — fichiers, bases relationnelles, NoSQL et services en " +
++      "ligne — puis les modes de stockage, la performance et les erreurs d'importation.",
++    microsoftLearn: `${LEARN}/get-data/`,
++    lecons: [
++      {
++        slug: "fichiers",
++        titre: "Obtenir des données depuis des fichiers",
++        accroche: "Fichier plat, emplacement local ou cloud, Navigateur, Charger ou Transformer.",
++        minutes: 10,
++        microsoftLearn: `${LEARN}/get-data/2-files`,
++      },
++      {
++        slug: "bases-relationnelles",
++        titre: "Obtenir des données depuis une base relationnelle",
++        accroche: "Connexion SQL Server, authentification, requête SQL et bonnes pratiques.",
++        minutes: 14,
++        microsoftLearn: `${LEARN}/get-data/3-relational-data`,
++      },
++      {
++        slug: "rapports-dynamiques",
++        titre: "Créer des rapports dynamiques avec des paramètres",
++        accroche: "Un paramètre à valeur unique, puis une fonction appelée sur toute une liste.",
++        minutes: 6,
++        microsoftLearn: `${LEARN}/get-data/4-dynamic-reports-parameters`,
++      },
++      {
++        slug: "nosql",
++        titre: "Obtenir des données depuis une base NoSQL",
++        accroche: "Cosmos DB, documents JSON, et le bouton Développer qui aplatit les Record.",
++        minutes: 5,
++        microsoftLearn: `${LEARN}/get-data/5-nosql-database`,
++      },
++      {
++        slug: "services-en-ligne",
++        titre: "Obtenir des données depuis des services en ligne",
++        accroche: "SharePoint et consorts : la règle de l'URL du site, pas du fichier.",
++        minutes: 5,
++        microsoftLearn: `${LEARN}/get-data/6-online-services`,
++      },
++      {
++        slug: "mode-de-stockage",
++        titre: "Choisir un mode de stockage",
++        accroche: "Import, DirectQuery, Dual — et les trois raisons de quitter l'importation.",
++        minutes: 6,
++        microsoftLearn: `${LEARN}/get-data/7-storage-mode`,
++      },
++      {
++        slug: "analysis-services",
++        titre: "Obtenir des données depuis Azure Analysis Services",
++        accroche: "Un modèle déjà construit : MDX ou DAX, et la connexion active.",
++        minutes: 5,
++        microsoftLearn: `${LEARN}/get-data/8-analysis-services`,
++      },
++      {
++        slug: "performance",
++        titre: "Corriger les problèmes de performance",
++        accroche: "Le query folding, ses trois briseurs, et les diagnostics de requête.",
++        minutes: 10,
++        microsoftLearn: `${LEARN}/get-data/9-performance-issues`,
++      },
++      {
++        slug: "erreurs-import",
++        titre: "Résoudre les erreurs d'importation",
++        accroche: "Délai dépassé, table Excel absente, fichier introuvable, colonnes vides.",
++        minutes: 7,
++        microsoftLearn: `${LEARN}/get-data/10-data-import-errors`,
++      },
++    ],
++  },
++  {
++    slug: "nettoyer-transformer",
++    rang: 3,
++    titre: "Nettoyer, transformer et charger",
++    resume:
++      "Tout ce qui se passe dans Power Query avant le chargement : mise en forme, " +
++      "simplification, types, combinaison de tables, profilage et code M.",
++    microsoftLearn: `${LEARN}/clean-data-power-bi/`,
++    lecons: [
++      {
++        slug: "introduction",
++        titre: "Pourquoi nettoyer les données",
++        accroche: "Cinq symptômes de données sales, cinq bénéfices à les corriger.",
++        minutes: 2,
++        microsoftLearn: `${LEARN}/clean-data-power-bi/1-introduction`,
++      },
++      {
++        slug: "mise-en-forme",
++        titre: "Mettre en forme les données initiales",
++        accroche: "En-têtes, lignes et colonnes à retirer, dépivotage et pivot.",
++        minutes: 18,
++        microsoftLearn: `${LEARN}/clean-data-power-bi/2-shape-data`,
++      },
++      {
++        slug: "simplifier-la-structure",
++        titre: "Simplifier la structure des données",
++        accroche: "Renommer, remplacer des valeurs, traiter les nulls, dédoublonner.",
++        minutes: 8,
++        microsoftLearn: `${LEARN}/clean-data-power-bi/3-data-structure`,
++      },
++      {
++        slug: "types-de-colonnes",
++        titre: "Évaluer et changer les types de colonnes",
++        accroche: "La détection sur 1 000 lignes, et ce qu'un mauvais type empêche de faire.",
++        minutes: 10,
++        microsoftLearn: `${LEARN}/clean-data-power-bi/4-column-data-types`,
++      },
++      {
++        slug: "combiner-des-tables",
++        titre: "Combiner plusieurs tables en une seule",
++        accroche: "Ajouter des lignes ou fusionner des colonnes, et les trois jointures.",
++        minutes: 8,
++        microsoftLearn: `${LEARN}/clean-data-power-bi/5-combine-tables`,
++      },
++      {
++        slug: "profiler-les-donnees",
++        titre: "Profiler les données",
++        accroche: "Qualité, distribution, profil de colonne — et distinctes contre uniques.",
++        minutes: 20,
++        microsoftLearn: `${LEARN}/clean-data-power-bi/6-profile-data`,
++      },
++      {
++        slug: "editeur-avance",
++        titre: "L'Éditeur avancé et le code M",
++        accroche: "La structure let / in, et pourquoi réordonner les étapes casse tout.",
++        minutes: 4,
++        microsoftLearn: `${LEARN}/clean-data-power-bi/7-advanced-editor`,
++      },
++    ],
++  },
++  {
++    slug: "framework-de-modele",
++    rang: 4,
++    titre: "Choisir un framework de modèle",
++    resume:
++      "Le premier module de niveau intermédiaire : moins de procédures, plus de décisions. " +
++      "Importation, DirectQuery ou composite, et le raisonnement qui mène à l'un des trois.",
++    microsoftLearn: `${LEARN}/choose-power-bi-model-framework/`,
++    lecons: [
++      {
++        slug: "introduction",
++        titre: "Introduction",
++        accroche: "Un seul outil, plusieurs frameworks : performance, temps réel, ou les deux.",
++        minutes: 3,
++        microsoftLearn: `${LEARN}/choose-power-bi-model-framework/1-introduction`,
++      },
++      {
++        slug: "fondements-du-modele",
++        titre: "Les fondements du modèle Power BI",
++        accroche: "Sept termes, de la requête analytique au schéma en étoile.",
++        minutes: 9,
++        microsoftLearn: `${LEARN}/choose-power-bi-model-framework/2-describe-power-bi-model-fundamentals`,
++      },
++      {
++        slug: "modele-importation",
++        titre: "Quand développer un modèle d'importation",
++        accroche: "À venir.",
++        minutes: 7,
++        microsoftLearn: `${LEARN}/choose-power-bi-model-framework/3-determine-when-to-develop-import-model`,
++      },
++      {
++        slug: "modele-directquery",
++        titre: "Quand développer un modèle DirectQuery",
++        accroche: "À venir.",
++        minutes: 9,
++        microsoftLearn: `${LEARN}/choose-power-bi-model-framework/4-determine-when-to-develop-directquery-model`,
++      },
++      {
++        slug: "modele-composite",
++        titre: "Quand développer un modèle composite",
++        accroche: "À venir.",
++        minutes: 7,
++        microsoftLearn: `${LEARN}/choose-power-bi-model-framework/5-determine-when-to-develop-composite-model`,
++      },
++      {
++        slug: "choisir-un-framework",
++        titre: "Choisir un framework",
++        accroche: "À venir.",
++        minutes: 3,
++        microsoftLearn: `${LEARN}/choose-power-bi-model-framework/6-choose-model-framework`,
++      },
++    ],
++  },
++];
++
++// ==================== ACCÈS ====================
++
++/** Retourne un module par son identifiant d'adresse, ou undefined. */
++export function getModule(slug: string): Module | undefined {
++  return MODULES.find((m) => m.slug === slug);
++}
++
++/** Retourne une leçon et son module, ou undefined si l'un des deux manque. */
++export function getLesson(
++  moduleSlug: string,
++  lessonSlug: string,
++): { module: Module; lecon: Lesson } | undefined {
++  const trouve = getModule(moduleSlug);
++  const lecon = trouve?.lecons.find((l) => l.slug === lessonSlug);
++  return trouve && lecon ? { module: trouve, lecon } : undefined;
++}
++
++/** Leçon suivante et précédente dans le parcours, tous modules confondus. */
++export function getVoisines(
++  moduleSlug: string,
++  lessonSlug: string,
++): { precedente?: { module: Module; lecon: Lesson }; suivante?: { module: Module; lecon: Lesson } } {
++  const plat = MODULES.flatMap((module) => module.lecons.map((lecon) => ({ module, lecon })));
++  const i = plat.findIndex((e) => e.module.slug === moduleSlug && e.lecon.slug === lessonSlug);
++  if (i === -1) return {};
++  return { precedente: plat[i - 1], suivante: plat[i + 1] };
++}
++
++/** Nombre de résumés écrits, sur le nombre total de leçons du parcours. */
++export function getAvancement(): { pretes: number; total: number } {
++  return { pretes: compterResumes(), total: MODULES.flatMap((m) => m.lecons).length };
++}
+-- 
+2.43.0
+
